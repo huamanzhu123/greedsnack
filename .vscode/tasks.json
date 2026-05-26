@@ -1,0 +1,59 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build (g++)",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-Wall",
+                "-Wextra",
+                "-std=c++20",
+                "-Iinclude",
+                "-o",
+                "greedysnake.exe",
+                "src/main.cpp",
+                "src/game_shared.cpp",
+                "src/game_ui.cpp",
+                "src/level_common.cpp",
+                "src/level1.cpp",
+                "src/leaderboard.cpp"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$gcc",
+            "detail": "Compile all sources with G++ (C++20)"
+        },
+        {
+            "label": "build (Makefile)",
+            "type": "shell",
+            "command": "mingw32-make",
+            "args": [
+                "all"
+            ],
+            "group": "build",
+            "problemMatcher": "$gcc",
+            "detail": "Build using Makefile"
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "mingw32-make",
+            "args": [
+                "clean"
+            ],
+            "problemMatcher": [],
+            "detail": "Clean build artifacts"
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": ".\\greedysnake.exe",
+            "dependsOn": ["build (g++)"],
+            "problemMatcher": [],
+            "detail": "Build and run the game"
+        }
+    ]
+}
