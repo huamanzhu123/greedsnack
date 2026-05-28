@@ -1,7 +1,3 @@
-#include "../include/game_shared.h"
-#include <cstdio>
-#include <cstdlib>
-
 /*
 	此文件封装控制台位置设置、隐藏光标、画边框、通用时间函数、随机初始化等平台相关工具。需实现以下功能：
 	1. 设置光标位置

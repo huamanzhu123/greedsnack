@@ -1,7 +1,3 @@
-#include "../include/level_common.h"
-#include <stdlib.h>
-#include <string.h>
-
 /* 说明
 *  本文件实现蛇的初始化、移动、增长、缩短、碰撞检测等通用功能，以及食物的随机放置功能。
 *  1.snake_init: 初始化蛇的位置、长度、方向等属性；

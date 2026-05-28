@@ -7,6 +7,10 @@
 extern "C" {
 #endif
 
+#include "../include/level_common.h"
+#include <stdlib.h>
+#include <string.h>
+
 #ifndef WIDTH
 #define WIDTH 40
 #endif

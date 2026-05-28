@@ -8,6 +8,11 @@ extern "C" {
 #include <windows.h>
 #include <stdint.h>
 
+
+#include "../include/game_shared.h"
+#include <cstdio>
+#include <cstdlib>
+
 	/* 如果外层没有定义这些常量，可以在各模块中定义或使用这里的默认值 */
 #ifndef WIDTH
 #define WIDTH 40
