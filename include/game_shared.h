@@ -1,15 +1,14 @@
 #ifndef GAME_SHARED_H
 #define GAME_SHARED_H
 
+#include <windows.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <windows.h>
-#include <stdint.h>
-
-#include <cstdio>
-#include <cstdlib>
 
 	/* 如果外层没有定义这些常量，可以在各模块中定义或使用这里的默认值 */
 #ifndef WIDTH

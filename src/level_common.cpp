@@ -50,7 +50,7 @@ void snake_grow(Snake* s) {
 }
 
 int check_self_collision(Snake* s) {
-    if(!s) return;  // 如果蛇不存在或已死亡，直接返回
+    if(!s) return 0;  // 如果蛇不存在，直接返回
 
     // 检查蛇头是否与身体其他部分重叠
     for (int i = 1; i < s->length; i++) {
@@ -62,10 +62,10 @@ int check_self_collision(Snake* s) {
 }
 
 int check_wall_collision(Snake* s) {
-    if(!s) return;  // 如果蛇不存在或已死亡，直接返回
+    if(!s) return 0;  // 如果蛇不存在，直接返回
 
-    // 检查蛇头是否碰到墙壁
-    if (s->x[0] < 0 || s->x[0] >= WIDTH || s->y[0] < 0 || s->y[0] >= HEIGHT) {
+    // 检查蛇头是否碰到墙壁（游戏区域为 [0, WIDTH-3] × [0, HEIGHT-3]）
+    if (s->x[0] < 0 || s->x[0] >= WIDTH - 2 || s->y[0] < 0 || s->y[0] >= HEIGHT - 2) {
         return 1; // 碰撞发生，返回1
     }
     return 0; // 没有碰撞，返回0
@@ -76,8 +76,8 @@ int place_food_safe(Food* f, const Snake* s) {
 
     int tries = 0;
     while(tries < 1000) {
-        int x = rand() % (WIDTH - 2) - 1;
-        int y = rand() % (HEIGHT - 2) - 1;
+        int x = rand() % (WIDTH - 2);   // 可玩区域 x: [0, WIDTH-3]
+        int y = rand() % (HEIGHT - 2);  // 可玩区域 y: [0, HEIGHT-3]
 
         int conflict = 0;
         for(int i = 0; i < s->length; i++) {

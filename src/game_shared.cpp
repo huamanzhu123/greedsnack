@@ -28,7 +28,7 @@ void hide_cursor(void) {
 
 // 毫秒级时间获取
 unsigned long get_tick_ms(void) {
-    return GetTickCount64();
+    return GetTickCount();
 }
 
 void clear_screen(void) {
