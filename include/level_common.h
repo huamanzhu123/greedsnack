@@ -30,6 +30,31 @@ extern "C" {
 	5. 实现安全放置食物的函数，确保食物不会生成在蛇身上。
 */
 
+typedef struct {
+	int x[MAX_SNAKE];  // 蛇身体各部分的x坐标
+	int y[MAX_SNAKE];  // 蛇身体各部分的y坐标
+	int length;        // 蛇的长度
+	int dir;           // 蛇的当前方向（0-3分别表示上、右、下、左）
+	int score;         // 当前分数
+	int alive;         // 是否存活（1表示存活，0表示死亡）
+} Snake;
+
+typedef struct {
+	int x;             // 食物的x坐标
+	int y;             // 食物的y坐标
+	int type;          // 食物类型（0-普通食物，1-特殊食物）
+	unsigned long refresh_time;  // 食物刷新时间（毫秒级）
+} Food;
+
+void snake_init(Snake* s, int startX, int sstartY);
+void snake_move(Snake* s);
+void snake_grow(Snake* s);
+
+int check_self_collision(Snake* s);
+int check_wall_collision(Snake* s);
+
+int place_food_safe(Food* f, const Snake* snakes[]);
+
 
 #ifdef __cplusplus
 }
