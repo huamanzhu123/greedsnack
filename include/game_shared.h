@@ -8,8 +8,6 @@ extern "C" {
 #include <windows.h>
 #include <stdint.h>
 
-
-#include "../include/game_shared.h"
 #include <cstdio>
 #include <cstdlib>
 

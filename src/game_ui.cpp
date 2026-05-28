@@ -3,6 +3,7 @@
 * 1. 绘制游戏界面，包括边框、分数、蛇、食物等视觉元素
 * 2. 处理输入：修改 s->dir；若检测到退出（Esc）则设置 *game_over = 1
 */
+#include "../include/game_ui.h"
 
 void draw_board(const Snake* s, const Food* f, int score, int width, int height, int speed_ms) {
     if(!s || !f) return;

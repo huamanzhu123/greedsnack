@@ -5,6 +5,7 @@
 	3. 获取毫秒级时间函数
 	4. 清屏函数
 */
+#include "../include/game_shared.h"
 
 // 设置光标位置
 void set_cursor_pos(int x, int y) {

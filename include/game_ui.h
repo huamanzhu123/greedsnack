@@ -9,7 +9,6 @@ extern "C" {
 #include <stdio.h>
 #include <conio.h>
 #include <windows.h>
-#include "../include/game_ui.h"
 #include "../include/game_shared.h"
 
 #include "level_common.h"

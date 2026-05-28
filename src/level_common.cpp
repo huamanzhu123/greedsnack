@@ -8,6 +8,7 @@
 *  6.place_food_safe: 在不与任意蛇身体重叠的位置放置食物。
 *
 */
+#include "../include/level_common.h"
 
 void snake_init(Snake* s, int startX, int startY) {
     s->length = 3;  // 初始长度为3
