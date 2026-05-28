@@ -6,7 +6,7 @@
 #include <conio.h>
 
 #include "../include/level1.h"
-
+#include "../include/game_shared.h"
 
 /*
         说明：
@@ -32,7 +32,7 @@ int main() {
     // 生成随机种子
     srand((unsigned int)time(NULL));
     // 设置光标位置
-    set_cursir_pos(0, 0);
+    set_cursor_pos(0, 0);
     // 隐藏光标
     hide_cursor();
     // 主菜单功能实现
