@@ -29,6 +29,8 @@ void show_menu() {
 }
 
 int main() {
+    SetConsoleOutputCP(65001);   // 输出 UTF-8
+    SetConsoleCP(65001);         // 输入 UTF-8
     // 生成随机种子
     srand((unsigned int)time(NULL));
     // 设置光标位置
