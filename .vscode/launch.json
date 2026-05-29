@@ -1,8 +1,9 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
-            "name": "g++ - 生成和调试活动文件",
+            "name": "Debug Snake",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}\\greedysnake.exe",
