@@ -33,6 +33,9 @@ public:
 
     int get_length() const { return length; }
     int get_dir() const { return dir; }
+
+    void setDir(int d) { dir = d; }
+
     int is_alive() const { return alive; }
     int get_blood() const { return blood; }
     int get_energy() const { return energy; }

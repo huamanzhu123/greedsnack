@@ -26,6 +26,8 @@ class Food {
 public:
     Food();
     int place_food_safe(Food& f, const Snake& s);
+	int get_x() const {return x;}
+	int get_y() const {return y;}
 private:
 	int x;             // 食物的x坐标
 	int y;             // 食物的y坐标
