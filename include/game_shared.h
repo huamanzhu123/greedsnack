@@ -19,13 +19,25 @@ extern "C" {
 #define HEIGHT 20
 #endif
 
-/* 控制台相关工具 */
-	void set_cursor_pos(int x, int y);
-	void hide_cursor(void);
-	void clear_screen(void);
+class Console {
+		private:
+			HANDLE hConsole;  // 控制台句柄
 
-	/* 毫秒级时间函数（封装 GetTickCount） */
-	unsigned long get_tick_ms(void);
+	public:
+		Console();
+		// 设置光标位置
+		void setCursorPos(int x, int y);
+		// 隐藏光标
+		void hideCursor();
+		// 显示光标
+		void showCursor();
+		// 清屏
+		void clear();
+		// 获取毫秒级时间戳
+		unsigned long getTickMs();
+		//控制台编码为UTF-8
+		void setUTF8();
+};
 
 #ifdef __cplusplus
 }

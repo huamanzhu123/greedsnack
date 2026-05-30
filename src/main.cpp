@@ -1,4 +1,4 @@
-// main.c : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
+﻿// main.c : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +27,7 @@ void show_menu() {
     printf("请选择游戏模式：");
 }
 
-// 获取用户菜单选择，返回有效的选项字符
+// 获取用户菜单选择，返回有效的选项字符 
 int get_menu_choice() {
     int ch;
     while (1) {
