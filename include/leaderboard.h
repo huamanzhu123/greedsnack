@@ -1,44 +1,52 @@
 #ifndef LEADERBOARD_H
 #define LEADERBOARD_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stddef.h>
-
-    /* 若外部未定义 NAME_LEN/LEADERBOARD_FILE/LEADERBOARD_SIZE，则使用默认值 */
-#ifndef NAME_LEN
-#define NAME_LEN 32
-#endif
-
-#ifndef LEADERBOARD_FILE
+#include <cstdio>
+#include <cstring>
+// 排行榜配置的常量
 #define LEADERBOARD_FILE "leaderboard.txt"
-#endif
+#define LEADERBOARD_SIZE 10
+#define NAME_LEN 32
 
-#ifndef LEADERBOARD_SIZE
-#define LEADERBOARD_SIZE 5
-#endif
+// 排行榜条目结构
+struct LBEntry {
+    char name[NAME_LEN]; //玩家姓名
+    int score; //玩家的分数
+};
 
-    typedef struct {
-        char name[NAME_LEN];
-        int score;
-    } LBEntry;
+class Leaderboard {
+public:
+    // 构造函数，指定文件名和最大条目数
+    Leaderboard(const char* filename = LEADERBOARD_FILE, int maxSize = LEADERBOARD_SIZE);
+    ~Leaderboard() = default;
 
-    /* 加载最多 max 条记录，返回实际读取数量 */
-    int load_leaderboard(LBEntry arr[], int max);
-    /* 保存 count 条记录到文件（覆盖） */
-    void save_leaderboard(const LBEntry arr[], int count);
+    // 从文件加载排行榜到内部数组，返回实际条目数
+    int load();
 
-    /* 将一条记录合并到排行榜（内部会排序并截断到 LEADERBOARD_SIZE） */
-    void update_leaderboard(const char* name, int score);
+    // 将内部数组保存到文件
+    void save() const;
 
-    /* 在控制台提示玩家输入名字并将分数写入排行榜*/
-    void prompt_and_update_leaderboard(int final_score);
+    // 更新排行榜函数，如果新分数更高或出现新玩家，更新并保持降序排序
+    void update(const char* name, int score);
 
+    // 提示用户输入姓名，更新排行榜，显示当前排行榜
+    void promptAndUpdate(int finalScore);
 
-#ifdef __cplusplus
-}
-#endif
+    // 在控制台显示排行榜
+    void display() const;
 
-#endif /* LEADERBOARD_H */ 
+    // 获取内部数组和条目数，供外部显示使用
+    const LBEntry* getEntries() const { return entries; }
+    int getCount() const { return count; }
+
+private:
+    // 降序排序的比较函数
+    static int cmpDesc(const void* a, const void* b);
+
+    char filename[256];            // 排行榜文件路径
+    int maxSize;                   // 最大条目数
+    LBEntry entries[LEADERBOARD_SIZE]; // 固定大小数组存储条目
+    int count;                     // 当前实际条目数
+};
+
+#endif // LEADERBOARD_H

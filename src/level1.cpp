@@ -1,94 +1,101 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <conio.h>
-#include <windows.h>
-
 #include "../include/level1.h"
 #include "../include/game_shared.h"
 #include "../include/game_ui.h"
 #include "../include/level_common.h"
-#include "../include/leaderboard.h"
+#include "../include/leaderboard.h" 
+#include <ctime>
+#include <cstdlib>
+#include <conio.h>
+#include <windows.h>
 
+// 构造函数
+Level1::Level1()
+    : score(0)
+    , gameOver(0)
+    , speedMs(200)
+    , startX((WIDTH - 2) / 2)
+    , startY((HEIGHT - 2) / 2)
+    , lastMoveTime(0) {
+    // 初始化蛇和食物的工作放在 run() 中
+}
 
-/* 单人普通模式（关卡1）实现：
-*   1. 声明变量 score, gameOver, speedMs, startX, startY
-*   2. 隐藏光标
-*   3. 初始化蛇与首个食物
-*   4. 清屏
-*   5. 游戏主循环
-*     5.1 渲染画面（调用 draw_board）
-*     5.2 输入与定时（调用 process_input）
-*     5.3 移动蛇（调用 snake_move）
-*     5.4 碰撞检测（调用 check_self_collision 与 check_wall_collision）
-*     5.5 吃食物（调用 snake_grow 与 place_food_safe）
-*   6. 游戏结束后将光标移到画面下面再读取名字
-*   7. 调用 leaderboard 模块的提示与更新函数
-*/
-
-void level1_run(void) {
-    int score = 0;
-    int gameOver = 0;          // 游戏结束标志
-    int speedMs = 200;         // 蛇移动间隔（毫秒），值越小速度越快
-    int startX = (WIDTH - 2) / 2;   // 蛇起始x坐标（地图中央）
-    int startY = (HEIGHT - 2) / 2;  // 蛇起始y坐标（地图中央）
-
+// 运行关卡1
+void Level1::run() {
+    // 隐藏光标
     hide_cursor();
-
-    // 初始化蛇
-    Snake s;
-    snake_init(&s, startX, startY);
-
+    // 初始化蛇的位置
+    snake_init(&snake, startX, startY);
     // 初始化食物
-    Food f;
-    place_food_safe(&f, &s);
-
+    place_food_safe(&food, &snake);
+    // 清屏
     clear_screen();
 
-    unsigned long lastMoveTime = get_tick_ms();  // 上一次移动的时间戳
+    // 记录当前开始的时间，作为蛇移动的基准时间点。
+    // 方便后面进行时间比较来控制移动频率，以及添加其他拓展或创新功能
+    lastMoveTime = get_tick_ms();
 
+
+    //循环的逻辑实现
+    // 当gameOver等于0时才会继续执行。
+    // 每一轮的循环内部都在执行下面的东西
+    // 读取键盘输入，根据它来更新蛇的方向，或者设置游戏结束标志
+    // 判断蛇是否已经到了下一次移动的时间
+    // 如果到了，就移动蛇并检测碰撞、吃食物
+    // 重绘当前画面，展示在控制台上，方便用户根据这个画面来决定下一步操作
+    // 等待一小段时间，避免 CPU 占用过高。
     while (!gameOver) {
-        // 处理输入
-        process_input(&s, &gameOver);
+        // 处理玩家输入，读取方向键或退出命令，并把结果写到snake和gameOver里面
+        // 比如当玩家按下ESC或关闭键的时候，调用process_input函数会把gameOver设为 1。
+        process_input(&snake, &gameOver);//把蛇的地址传进来，通过函数直接修改蛇的方向、状态
+        //函数可以检测ESC键或者关闭窗口的事件，把gameOver设置为1，来结束游戏循环。
+
         if (gameOver) break;
 
-        // 判断是否到达移动间隔
+        // 通过时间戳控制蛇的移动速度。
+        // lastMoveTime存储上次实际移动的时间点，now是现在的时间。
+        // 只有当距离上次移动经过了至少speedMs毫秒，蛇才会再移动一步。
         unsigned long now = get_tick_ms();
-        if (now - lastMoveTime >= (unsigned long)speedMs) {
+        if (now - lastMoveTime >= static_cast<unsigned long>(speedMs)) {
+            // 记录本次移动的时间，以便下次比较。
             lastMoveTime = now;
 
-            // 移动蛇
-            snake_move(&s);
+            // 根据当前方向让蛇移动一步。
+            snake_move(&snake);
 
-            // 碰撞检测：撞墙或撞自身
-            if (check_self_collision(&s) || check_wall_collision(&s)) {
+            // 如果蛇头碰到了自己的身体，或者碰到了边界墙壁，游戏结束。
+            // check_self_collisio和check_wall_collision会返回非零表示发生碰撞。
+            if (check_self_collision(&snake) || check_wall_collision(&snake)) {
                 gameOver = 1;
                 break;
             }
-
-            // 吃到食物检测：蛇头坐标与食物坐标重合
-            if (s.x[0] == f.x && s.y[0] == f.y) {
-                snake_grow(&s);          // 蛇长度增加
+            // 如果蛇头的位置与食物重合，就表示吃到了食物。
+            //执行相应的加分（后面拓展功能可能也要判断要不要减分）
+            if (snake.x[0] == food.x && snake.y[0] == food.y) {
+                // 增长蛇身长度，增加分数，并生成下一个食物。
+                snake_grow(&snake);
                 score++;
-                place_food_safe(&f, &s); // 放置新食物
+                place_food_safe(&food, &snake);
             }
         }
 
-        // 绘制画面
-        draw_board(&s, &f, score, WIDTH, HEIGHT, speedMs);
+        // 这里无论蛇是否移动，都要刷新画面。
+        // 这个函数要根据当前蛇身、食物位置、分数和速度绘制游戏地图。
+        draw_board(&snake, &food, score, WIDTH, HEIGHT, speedMs);
 
-        // 短暂延时，控制帧率
+        // Sleep只是为了让循环不要无限制地占用CPU
+        // 蛇的移动节奏由上面的时间判断决定，Sleep只是控制屏幕刷新频率，与速度无关
         Sleep(10);
     }
 
     // 游戏结束后，将光标移到画面下方
     set_cursor_pos(0, HEIGHT + 2);
-    while (_kbhit()) _getch();  // 清空键盘缓冲区
+    while (_kbhit()) _getch();   //清空键盘缓冲区
 
-    prompt_and_update_leaderboard(score);
+    // 使用Leaderboard类处理得分记录
+    Leaderboard lb;
+    lb.promptAndUpdate(score);
 
     printf("\nPress any key to return to menu...");
-    while (!_kbhit()) {}        // 等待按键
-    while (_kbhit()) _getch();  // 清除按键缓冲
+    while (!_kbhit()) {}
+    while (_kbhit()) _getch();
 }
