@@ -1,35 +1,43 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <conio.h>
+#include <windows.h>
 
 #include "../include/level1.h"
 #include "../include/game_shared.h"
+#include "../include/leaderboard.h"
 
 void show_menu() {
     printf("===== 欢迎来到贪吃蛇游戏 =====\n");
     printf("==============主菜单==============\n");
-    printf("1- 第一关（简单模式）\n");
+    printf("1- 开始游戏（第一关）\n");
+    printf("2- 查看排行榜（前五名）\n");
+    printf("3- 查看玩家信息\n");
     printf("0- 退出游戏\n");
     printf("=================================\n");
-    printf("请选择游戏模式：");
+    printf("请选择：");
 }
 
 int get_menu_choice() {
     int ch;
     while (1) {
         ch = _getch();
-        if (ch == '1' || ch == '0') {
+        if (ch == '1' || ch == '2' || ch == '3' || ch == '0')
             return ch;
-        }
     }
+}
+
+void clear_input_buffer() {
+    while (_kbhit()) _getch();
 }
 
 int main() {
     SetConsoleOutputCP(65001);
     SetConsoleCP(65001);
     srand((unsigned int)time(NULL));
-    
+
     Console console;
     console.hideCursor();
 
@@ -42,8 +50,39 @@ int main() {
 
         switch (choice) {
             case '1': {
-                Level1 level1;   // 每次游戏创建新对象，状态全新
-                level1.run();
+                Level1 game;
+                game.run();
+                break;
+            }
+            case '2': {
+                Leaderboard lb;
+                lb.displayTop5();
+                printf("\n按任意键返回菜单...");
+                clear_input_buffer();
+                while (!_kbhit()) {}
+                while (_kbhit()) _getch();
+                break;
+            }
+            case '3': {
+                printf("请输入要查询的玩家姓名：");
+                clear_input_buffer();
+                char name[32] = {0};
+                if (fgets(name, sizeof(name), stdin)) {
+                    size_t len = strlen(name);
+                    if (len > 0 && (name[len-1] == '\n' || name[len-1] == '\r'))
+                        name[len-1] = '\0';
+                    if (name[0] != '\0') {
+                        Leaderboard lb;
+                        lb.displayPlayerInfo(name);
+                    } else {
+                        printf("姓名不能为空。\n");
+                    }
+                } else {
+                    printf("读取输入失败。\n");
+                }
+                printf("\n按任意键返回菜单...");
+                while (!_kbhit()) {}
+                while (_kbhit()) _getch();
                 break;
             }
             case '0':
@@ -56,6 +95,7 @@ int main() {
 
     system("cls");
     console.setCursorPos(0, 0);
+    console.showCursor();   // 如果 Console 类没有 showCursor 方法，可以注释
     printf("感谢游玩，再见！\n");
     system("pause");
     return 0;

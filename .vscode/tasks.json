@@ -19,33 +19,17 @@
                 "src/leaderboard.cpp",
                 "src/level1.cpp",
                 "src/snake_class.cpp",
-                "src/food.cpp"
+                "src/food.cpp",
+                "src/player.cpp"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": "$gcc",
+            "problemMatcher": ["$gcc"],
             "options": {
                 "cwd": "${workspaceFolder}"
-            },
-            "detail": "Compile all sources with G++ (C++20)"
-        },
-        {
-            "label": "run",
-            "type": "shell",
-            "command": ".\\greedysnake.exe",
-            "dependsOn": ["build (g++)"],
-            "problemMatcher": [],
-            "detail": "Build and run the game"
-        },
-        {
-            "label": "clean",
-            "type": "shell",
-            "command": "cmd",
-            "args": ["/c", "del", "/q", "greedysnake.exe"],
-            "problemMatcher": [],
-            "detail": "Clean build artifacts"
+            }
         }
     ]
 }
