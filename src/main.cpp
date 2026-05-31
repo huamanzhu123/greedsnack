@@ -9,6 +9,7 @@
 #include "../include/game_shared.h"
 #include "../include/leaderboard.h"
 
+// 自定义菜单显示（包含三个选项）
 void show_menu() {
     printf("===== 欢迎来到贪吃蛇游戏 =====\n");
     printf("==============主菜单==============\n");
@@ -20,6 +21,7 @@ void show_menu() {
     printf("请选择：");
 }
 
+// 自定义菜单输入（接受 0,1,2,3）
 int get_menu_choice() {
     int ch;
     while (1) {
@@ -29,6 +31,7 @@ int get_menu_choice() {
     }
 }
 
+// 清空输入缓冲区
 void clear_input_buffer() {
     while (_kbhit()) _getch();
 }
@@ -44,9 +47,8 @@ int main() {
     int running = 1;
     while (running) {
         system("cls");
-        show_menu();
-
-        int choice = get_menu_choice();
+        show_menu();                     // 使用自定义菜单
+        int choice = get_menu_choice();  // 使用自定义输入
 
         switch (choice) {
             case '1': {
@@ -95,7 +97,7 @@ int main() {
 
     system("cls");
     console.setCursorPos(0, 0);
-    console.showCursor();   // 如果 Console 类没有 showCursor 方法，可以注释
+    console.showCursor();
     printf("感谢游玩，再见！\n");
     system("pause");
     return 0;

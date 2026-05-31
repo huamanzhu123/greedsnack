@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <conio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,8 +21,8 @@ extern "C" {
 #endif
 
 class Console {
-		private:
-			HANDLE hConsole;  // 控制台句柄
+	private:
+		HANDLE hConsole;  // 控制台句柄
 
 	public:
 		Console();
@@ -35,8 +36,12 @@ class Console {
 		void clear();
 		// 获取毫秒级时间戳
 		unsigned long getTickMs();
-		//控制台编码为UTF-8
+		// 控制台编码为UTF-8
 		void setUTF8();
+		// 显示主菜单
+		void show_menu();
+		// 获取菜单选择，等待用户输入 '1' 或 '0'，并返回该字符
+		int get_menu_choice();
 };
 
 #ifdef __cplusplus

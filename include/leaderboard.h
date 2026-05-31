@@ -1,11 +1,17 @@
 #ifndef LEADERBOARD_H
 #define LEADERBOARD_H
 
-#include "player.h"
-#include <vector>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 #include <string>
-
+#include <vector>
 #define LEADERBOARD_FILE "leaderboard.txt"
+#define LEADERBOARD_SIZE 10
+#define NAME_LEN 32
+
+// 前向声明 Player（若有单独的 player 头文件，可改为包含该头文件）
+struct Player;
 
 class Leaderboard {
 public:

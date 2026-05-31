@@ -3,6 +3,7 @@
 #include <fstream>
 #include <algorithm>
 #include <conio.h>
+#include "player.h" 
 
 Leaderboard::Leaderboard(const std::string& filename) : filename(filename) {
     load();

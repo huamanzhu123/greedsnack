@@ -1,0 +1,6 @@
+# 忽略整个 .vscode，但保留那些适合共享的文件
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/settings.json   # 需要先检查内容，再决定是否保留

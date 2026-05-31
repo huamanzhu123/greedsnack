@@ -48,3 +48,22 @@ void Console::setUTF8() {
     SetConsoleOutputCP(65001);
     SetConsoleCP(65001);
 }
+
+void Console::show_menu() {
+    printf("===== 欢迎来到贪吃蛇游戏 =====\n");
+    printf("==============主菜单==============\n");
+    printf("1- 第一关（简单模式）\n");
+    printf("0- 退出游戏\n");
+    printf("=================================\n");
+    printf("请选择游戏模式：");
+}
+
+int Console::get_menu_choice() {
+    int ch;
+    while (1) {
+        ch = _getch();
+        if (ch == '1' || ch == '0') {
+            return ch;
+        }
+    }
+}
