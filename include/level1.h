@@ -1,16 +1,13 @@
 #ifndef LEVEL1_H
 #define LEVEL1_H
 
-#include "../include/snake_class.h"
-#include "../include/food.h"
-#include "../include/game_shared.h"
-#include "../include/game_ui.h"
-#include "../include/leaderboard.h" 
-#include <ctime>
-#include <cstdlib>
-#include <conio.h>
-#include <windows.h>
-#include "player.h"
+#include "snake_class.h"
+#include "food.h"
+#include "obstacle.h"
+#include "shield_item.h"
+#include "game_shared.h"
+#include "game_ui.h"
+#include "leaderboard.h"
 
 class Level1 {
 public:
@@ -20,14 +17,20 @@ public:
 private:
     int score;
     int gameOver;
-    int baseSpeedMs;       // 基础移动间隔（毫秒）
-    int currentSpeedMs;    // 当前移动间隔（受shift影响）
+    int baseSpeedMs;
+    int currentSpeedMs;
     int startX, startY;
     Snake snake;
     Food food;
+    ObstacleManager obstacleManager;
+    ShieldItem shieldItem;
     unsigned long lastMoveTime;
+    unsigned long lastShieldSpawnTime;   // 上次生成护盾的时间（若吃掉了，延迟5秒再生成）
+    bool shieldEaten;                     // 护盾是否被吃掉，等待重生
 
-    void handleSpeedBoost();  // 检测shift并更新currentSpeedMs
+    void handleSpeedBoost();
+    void checkCollisionsAndEat(unsigned long now);
+    void trySpawnShield(unsigned long now);
 };
 
 #endif

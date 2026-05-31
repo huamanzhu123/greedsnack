@@ -1,4 +1,8 @@
 wzz 26 2
 z 6 1
-a 5 1
+a 5 3
 w 3 1
+、 0 1
+eeeeeeeeeeeeeeeeeeeeeeeeeeee 0 1
+ew 0 1
+S 0 1

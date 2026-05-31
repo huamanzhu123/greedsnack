@@ -8,14 +8,16 @@
 #include "../include/level1.h"
 #include "../include/game_shared.h"
 #include "../include/leaderboard.h"
+#include "../include/level2.h"
 
 // 自定义菜单显示（包含三个选项）
 void show_menu() {
     printf("===== 欢迎来到贪吃蛇游戏 =====\n");
     printf("==============主菜单==============\n");
-    printf("1- 开始游戏（第一关）\n");
-    printf("2- 查看排行榜（前五名）\n");
-    printf("3- 查看玩家信息\n");
+    printf("1- 单人模式（第一关）\n");
+    printf("2- 双人对战模式\n");
+    printf("3- 查看排行榜（前五名）\n");
+    printf("4- 查看玩家信息\n");
     printf("0- 退出游戏\n");
     printf("=================================\n");
     printf("请选择：");
@@ -26,7 +28,7 @@ int get_menu_choice() {
     int ch;
     while (1) {
         ch = _getch();
-        if (ch == '1' || ch == '2' || ch == '3' || ch == '0')
+        if (ch == '1' || ch == '2' || ch == '3' || ch == '4' || ch == '0')
             return ch;
     }
 }
@@ -57,6 +59,11 @@ int main() {
                 break;
             }
             case '2': {
+                Level2 game;
+                game.run();
+                break;
+            }
+            case '3': {
                 Leaderboard lb;
                 lb.displayTop5();
                 printf("\n按任意键返回菜单...");
@@ -65,7 +72,7 @@ int main() {
                 while (_kbhit()) _getch();
                 break;
             }
-            case '3': {
+            case '4': {
                 printf("请输入要查询的玩家姓名：");
                 clear_input_buffer();
                 char name[32] = {0};

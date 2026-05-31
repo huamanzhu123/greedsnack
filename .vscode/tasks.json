@@ -18,18 +18,39 @@
                 "src/game_ui.cpp",
                 "src/leaderboard.cpp",
                 "src/level1.cpp",
+                "src/level2.cpp",
                 "src/snake_class.cpp",
                 "src/food.cpp",
-                "src/player.cpp"
+                "src/player.cpp",
+                "src/shield.cpp",
+                "src/obstacle.cpp",
+                "src/shield_item.cpp"      // 新增护盾道具实现
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": ["$gcc"],
+            "problemMatcher": "$gcc",
             "options": {
                 "cwd": "${workspaceFolder}"
-            }
+            },
+            "detail": "Compile all sources with G++ (C++20)"
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": ".\\greedysnake.exe",
+            "dependsOn": ["build (g++)"],
+            "problemMatcher": [],
+            "detail": "Build and run the game"
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "cmd",
+            "args": ["/c", "del", "/q", "greedysnake.exe"],
+            "problemMatcher": [],
+            "detail": "Clean build artifacts"
         }
     ]
 }

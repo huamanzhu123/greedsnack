@@ -1,91 +1,218 @@
 #include "../include/level1.h"
-#include "../include/game_shared.h"
 #include "../include/game_ui.h"
 #include "../include/leaderboard.h"
 #include <cstring>
 #include <conio.h>
 #include <windows.h>
 
+// 辅助绘制函数，GameUI中无障碍物和护盾道具相关部分
+static void drawGameFrame(const Snake& snake, const Food& food,
+                          const ObstacleManager& obstacles,
+                          const ShieldItem& shield,
+                          int score, int speedMs) {
+    Console console;
+    console.setCursorPos(0, 0);
+    printf("Score: %d     Speed: %d ms     Controls: Arrow/WASD, Shift加速, Esc退出\n", score, speedMs);
+
+    // 上边框
+    for (int i = 0; i < WIDTH; ++i) putchar('#');
+    putchar('\n');
+
+    for (int y = 0; y < HEIGHT - 2; ++y) {
+        putchar('#');
+        for (int x = 0; x < WIDTH - 2; ++x) {
+            char ch = ' ';
+
+            // 食物
+            if (x == food.get_x() && y == food.get_y())
+                ch = '*';
+            // 护盾道具
+            else if (shield.isActive() && x == shield.getX() && y == shield.getY())
+                ch = 'S';
+            // 障碍物
+            else if (obstacles.checkCollision(x, y))
+                ch = '@';
+            // 蛇
+            else {
+                for (int k = 0; k < snake.get_length(); ++k) {
+                    if (x == snake.get_x(k) && y == snake.get_y(k)) {
+                        ch = (k == 0) ? 'O' : 'o';
+                        break;
+                    }
+                }
+            }
+            putchar(ch);
+        }
+        putchar('#');
+        putchar('\n');
+    }
+
+    // 下边框
+    for (int i = 0; i < WIDTH; ++i) putchar('#');
+    putchar('\n');
+
+    // 显示护盾剩余时间
+    if (snake.getShield().isActive()) {
+        unsigned long now = console.getTickMs();
+        float remain = snake.getShield().getRemainingTime(now) / 1000.0f;
+        if (remain > 0)
+            printf("护盾激活中: %.1f 秒 (免疫障碍物)\n", remain);
+    }
+}
+
 Level1::Level1()
-    : score(0)
-    , gameOver(0)
-    , baseSpeedMs(200)
-    , currentSpeedMs(200)
-    , startX((WIDTH - 2) / 2)
-    , startY((HEIGHT - 2) / 2)
-    , snake(startX, startY)
-    , lastMoveTime(0) {}
+    : score(0), gameOver(0), baseSpeedMs(200), currentSpeedMs(200),
+      startX((WIDTH - 2) / 2), startY((HEIGHT - 2) / 2),
+      snake(startX, startY),
+      lastMoveTime(0), lastShieldSpawnTime(0), shieldEaten(false) {}
 
 void Level1::handleSpeedBoost() {
     if (GetAsyncKeyState(VK_LSHIFT) & 0x8000 || GetAsyncKeyState(VK_RSHIFT) & 0x8000) {
-        // 加速到原来的 2 倍  间隔变为 1/2
         currentSpeedMs = baseSpeedMs / 2;
-        if (currentSpeedMs < 30) currentSpeedMs = 30;  // 速度下限
+        if (currentSpeedMs < 30) currentSpeedMs = 30;
     } else {
         currentSpeedMs = baseSpeedMs;
     }
 }
 
+void Level1::trySpawnShield(unsigned long now) {
+    if (!shieldItem.isActive() && !shieldEaten) {
+        if (now - lastShieldSpawnTime > 5000) {
+            shieldItem.place(WIDTH, HEIGHT, snake, obstacleManager, food);
+            if (shieldItem.isActive()) {
+                shieldEaten = false;
+                lastShieldSpawnTime = now;
+            } else {
+                lastShieldSpawnTime = now;
+            }
+        }
+    } else if (shieldEaten && !shieldItem.isActive()) {
+        if (now - lastShieldSpawnTime > 5000) {
+            shieldEaten = false;
+            lastShieldSpawnTime = now;
+        }
+    }
+}
+
+void Level1::checkCollisionsAndEat(unsigned long now) {
+    // 吃到护盾道具
+    if (shieldItem.isActive() &&
+        snake.get_x(0) == shieldItem.getX() && snake.get_y(0) == shieldItem.getY()) {
+        snake.getShield().activate(now);
+        shieldItem.setActive(false);
+        shieldEaten = true;
+        lastShieldSpawnTime = now;
+    }
+
+    // 吃到食物
+    if (snake.get_x(0) == food.get_x() && snake.get_y(0) == food.get_y()) {
+        snake.grow(snake);
+        score++;
+        food.place_food_safe(food, snake);
+    }
+
+    // 碰撞检测（护盾只免疫障碍物）
+    // 撞墙：直接游戏结束
+    if (snake.check_wall_collision(snake)) {
+        gameOver = 1;
+        return;
+    }
+    // 撞自己：直接游戏结束
+    if (snake.check_self_collision(snake)) {
+        gameOver = 1;
+        return;
+    }
+    // 撞障碍物：如果有护盾则抵消，否则游戏结束
+    if (obstacleManager.checkCollision(snake.get_x(0), snake.get_y(0))) {
+        if (!snake.getShield().tryDefend()) {
+            gameOver = 1;
+            return;
+        }
+    }
+}
 
 void Level1::run() {
-    GameUI ui(WIDTH, HEIGHT);
     Console console;
     console.hideCursor();
+    console.clear();
+    console.setUTF8();
 
-    // 重置游戏状态
+    // 初始化游戏状态
     snake = Snake(startX, startY);
     score = 0;
     gameOver = 0;
     baseSpeedMs = 200;
     currentSpeedMs = 200;
+
+    // 放置第一个食物
     food.place_food_safe(food, snake);
-    console.clear();
+
+    // 初始化障碍物，5个固定，3个移动，
+    obstacleManager.initialize(snake, snake, food, 5, 3);
+
+    // 初始化护盾
+    shieldItem.place(WIDTH, HEIGHT, snake, obstacleManager, food);
+    lastShieldSpawnTime = console.getTickMs();
+    shieldEaten = false;
+
     lastMoveTime = console.getTickMs();
-    //循环的逻辑实现
-    // 当gameOver等于0时才会继续执行。
-    // 每一轮的循环内部都在执行下面的东西
-    // 读取键盘输入，根据它来更新蛇的方向，或者设置游戏结束标志
-    // 判断蛇是否已经到了下一次移动的时间
-    // 如果到了，就移动蛇并检测碰撞、吃食物
-    // 重绘当前画面，展示在控制台上，方便用户根据这个画面来决定下一步操作
-    // 等待一小段时间，避免 CPU 占用过高。
+    unsigned long lastObstacleMove = lastMoveTime;
+
     while (!gameOver) {
-        ui.processInput(&snake, &gameOver);
-        if (gameOver) break;
+        // 输入处理
+        if (_kbhit()) {
+            int ch = _getch();
+            int currentDir = snake.get_dir();
+            if (ch == 0 || ch == 224) {
+                ch = _getch();
+                if (ch == 72 && currentDir != 2) snake.setDir(0);      // 上
+                else if (ch == 80 && currentDir != 0) snake.setDir(2); // 下
+                else if (ch == 75 && currentDir != 1) snake.setDir(3); // 左
+                else if (ch == 77 && currentDir != 3) snake.setDir(1); // 右
+            } else {
+                if ((ch == 'W' || ch == 'w') && currentDir != 2) snake.setDir(0);
+                else if ((ch == 'S' || ch == 's') && currentDir != 0) snake.setDir(2);
+                else if ((ch == 'A' || ch == 'a') && currentDir != 1) snake.setDir(3);
+                else if ((ch == 'D' || ch == 'd') && currentDir != 3) snake.setDir(1);
+                else if (ch == 27) gameOver = 1;
+            }
+        }
 
         handleSpeedBoost();
 
         unsigned long now = console.getTickMs();
-        
-        // 通过时间戳控制蛇的移动速度。
-        // lastMoveTime存储上次实际移动的时间点，now是现在的时间。
-        // 只有当距离上次移动经过了至少speedMs毫秒，蛇才会再移动一步。
+
+        // 蛇的移动
         if (now - lastMoveTime >= static_cast<unsigned long>(currentSpeedMs)) {
             lastMoveTime = now;
-
             snake.move(snake);
-             // 如果蛇头碰到了自己的身体，或者碰到了边界墙壁，游戏结束。
-            // check_self_collisio和check_wall_collision会返回非零表示发生碰撞。
-            if (snake.check_self_collision(snake) || snake.check_wall_collision(snake)) {
-                gameOver = 1;
-                break;
-            }
-            if (snake.get_x(0) == food.get_x() && snake.get_y(0) == food.get_y()) {
-                snake.grow(snake);
-                score++;
-                food.place_food_safe(food, snake);
-            }
+            checkCollisionsAndEat(now);
+            if (gameOver) break;
         }
 
-        ui.drawBoard(&snake, &food, score, currentSpeedMs);
+        // 移动障碍物更新（每200ms）
+        if (now - lastObstacleMove >= 200) {
+            lastObstacleMove = now;
+            obstacleManager.update(now);
+        }
+
+        // 生成新的护盾道具
+        trySpawnShield(now);
+
+        // 绘制画面
+        drawGameFrame(snake, food, obstacleManager, shieldItem, score, currentSpeedMs);
+
+        // 更新护盾持续时间
+        snake.getShield().update(now);
+
         Sleep(10);
     }
 
-    // 游戏结束：记录成绩
+    // 游戏结束处理
     console.setCursorPos(0, HEIGHT + 2);
     while (_kbhit()) _getch();
 
-    printf("Game over! Your final score: %d\n", score);
+    printf("\nGame Over! Your final score: %d\n", score);
     printf("Enter your name (max 31 chars, or press Enter to skip): ");
     char namebuf[32] = {0};
     if (fgets(namebuf, sizeof(namebuf), stdin) != nullptr) {
