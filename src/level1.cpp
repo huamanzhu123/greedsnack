@@ -1,13 +1,4 @@
 #include "../include/level1.h"
-#include "../include/game_shared.h"
-#include "../include/game_ui.h"
-#include "../include/snake_class.h"
-#include "../include/food.h"
-#include "../include/leaderboard.h" 
-#include <ctime>
-#include <cstdlib>
-#include <conio.h>
-#include <windows.h>
 
 // 构造函数
 Level1::Level1()

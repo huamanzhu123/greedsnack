@@ -6,25 +6,6 @@
 #include "../include/level1.h"
 #include "../include/game_shared.h"
 
-void show_menu() {
-    printf("===== 欢迎来到贪吃蛇游戏 =====\n");
-    printf("==============主菜单==============\n");
-    printf("1- 第一关（简单模式）\n");
-    printf("0- 退出游戏\n");
-    printf("=================================\n");
-    printf("请选择游戏模式：");
-}
-
-int get_menu_choice() {
-    int ch;
-    while (1) {
-        ch = _getch();
-        if (ch == '1' || ch == '0') {
-            return ch;
-        }
-    }
-}
-
 int main() {
     SetConsoleOutputCP(65001);
     SetConsoleCP(65001);
@@ -36,9 +17,9 @@ int main() {
     int running = 1;
     while (running) {
         system("cls");
-        show_menu();
+        console.show_menu();
 
-        int choice = get_menu_choice();
+        int choice = console.get_menu_choice();
 
         switch (choice) {
             case '1': {

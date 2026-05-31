@@ -3,6 +3,8 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
+#include <cstdio>
 // 排行榜配置的常量
 #define LEADERBOARD_FILE "leaderboard.txt"
 #define LEADERBOARD_SIZE 10

@@ -3,6 +3,13 @@
 
 #include "../include/snake_class.h"
 #include "../include/food.h"
+#include "../include/game_shared.h"
+#include "../include/game_ui.h"
+#include "../include/leaderboard.h" 
+#include <ctime>
+#include <cstdlib>
+#include <conio.h>
+#include <windows.h>
 
 class Level1 {
 public:

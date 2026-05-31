@@ -1,6 +1,4 @@
 #include "../include/leaderboard.h"
-#include <cstdlib>
-#include <cstdio>
 
 // 降序比较函数
 int Leaderboard::cmpDesc(const void* a, const void* b) {
