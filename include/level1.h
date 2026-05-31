@@ -1,7 +1,8 @@
 #ifndef LEVEL1_H
 #define LEVEL1_H
 
-#include "../include/level_common.h" 
+#include "../include/snake_class.h"
+#include "../include/food.h"
 
 class Level1 {
 public:

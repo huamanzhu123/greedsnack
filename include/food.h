@@ -8,6 +8,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include "snake_class.h"
 
 #ifndef WIDTH
 #define WIDTH 40
@@ -24,6 +25,7 @@ extern "C" {
 
 class Food {
 public:
+	
     Food();
     int place_food_safe(Food& f, const Snake& s);
 	int get_x() const {return x;}

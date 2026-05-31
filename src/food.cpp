@@ -24,3 +24,8 @@ int Food::place_food_safe(Food& f, const Snake& s) {
     }
     return 0; // 放置失败，返回0
 }
+//修改内容在下面
+#include "../include/food.h"
+#include "../include/snake_class.h"
+
+Food::Food() : x(0), y(0) {} ;
