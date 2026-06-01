@@ -24,7 +24,9 @@
                 "src/player.cpp",
                 "src/shield.cpp",
                 "src/obstacle.cpp",
-                "src/shield_item.cpp"      // 新增护盾道具实现
+                "src/shield_item.cpp",      // 新增护盾道具实现
+                "src/level3.cpp",
+                "src/aiSnake_class.cpp"
             ],
             "group": {
                 "kind": "build",

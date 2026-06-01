@@ -21,19 +21,19 @@ Snake::Snake(int startX, int startY, int playerId) : playerId(playerId) {
     }
 }
 
-void Snake::move(Snake& s) {
-    if(!s.alive) return;
+void Snake::move() {
+    if(!alive) return;
     
-    for (int i = s.length - 1; i > 0; i--) {
-        s.x[i] = s.x[i - 1];
-        s.y[i] = s.y[i - 1];
+    for (int i = length - 1; i > 0; i--) {
+        x[i] = x[i - 1];
+        y[i] = y[i - 1];
     }
 
-    switch (s.dir) {
-        case 0: s.y[0]--; break;  // 上
-        case 1: s.x[0]++; break;  // 右
-        case 2: s.y[0]++; break;  // 下
-        case 3: s.x[0]--; break;  // 左
+    switch (dir) {
+        case 0: y[0]--; break;  // 上
+        case 1: x[0]++; break;  // 右
+        case 2: y[0]++; break;  // 下
+        case 3: x[0]--; break;  // 左
     }
 }
 
@@ -52,45 +52,45 @@ int Snake::randomPerpendicularDirection(int dir) {
     }
 }
 
-void Snake::move_with_collision(Snake& s) {
-    if(!s.alive) return;
+void Snake::move_with_collision() {
+    if(!alive) return;
 
-    s.dir = randomPerpendicularDirection(s.dir);
-    switch (s.dir) {
+    dir = randomPerpendicularDirection(dir);
+    switch (dir) {
         case 0:
-            s.x[0] = s.x[1], s.y[0] = s.y[1] - 1;
+            x[0] = x[1], y[0] = y[1] - 1;
             break;
         case 1:
-            s.x[0] = s.x[1] + 1, s.y[0] = s.y[1];
+            x[0] = x[1] + 1, y[0] = y[1];
             break;
         case 2:
-            s.x[0] = s.x[1], s.y[0] = s.y[1] + 1;
+            x[0] = x[1], y[0] = y[1] + 1;
             break;
         case 3:
-            s.x[0] = s.x[1] - 1, s.y[0] = s.y[1];
+            x[0] = x[1] - 1, y[0] = y[1];
             break;
     }
 }
 
-void Snake::grow(Snake& s) {
-    if(s.length >= MAX_SNAKE) return;
+void Snake::grow() {
+    if(length >= MAX_SNAKE) return;
 
-    s.x[s.length] = s.x[s.length - 1];
-    s.y[s.length] = s.y[s.length - 1];
-    s.length++;
+    x[length] = x[length - 1];
+    y[length] = y[length - 1];
+    length++;
 }
 
-int Snake::check_self_collision(const Snake& s) {
-    for (int i = 1; i < s.length; i++) {
-        if (s.x[0] == s.x[i] && s.y[0] == s.y[i]) {
+int Snake::check_self_collision() {
+    for (int i = 1; i < length; i++) {
+        if (x[0] == x[i] && y[0] == y[i]) {
             return 1;
         }
     }
     return 0;
 }
 
-int Snake::check_wall_collision(const Snake& s) {
-    if (s.x[0] < 0 || s.x[0] >= WIDTH - 2 || s.y[0] < 0 || s.y[0] >= HEIGHT - 2) {
+int Snake::check_wall_collision() {
+    if (x[0] < 0 || x[0] >= WIDTH - 2 || y[0] < 0 || y[0] >= HEIGHT - 2) {
         return 1;
     }
     return 0;
