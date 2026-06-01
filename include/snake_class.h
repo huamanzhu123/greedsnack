@@ -22,6 +22,8 @@ extern "C" {
 #define MAX_SNAKE ((WIDTH -2) * (HEIGHT -2))
 #endif
 
+const int baseSpeedMs = 200;
+
 class Snake {
 public:
     Snake(int startX = 0, int startY = 0, int playerId = 1);
@@ -47,6 +49,9 @@ public:
     int get_energy() const { return energy; }
     int get_x(int index) const { return (index >= 0 && index < length) ? x[index] : -1; }
     int get_y(int index) const { return (index >= 0 && index < length) ? y[index] : -1; }
+    int get_speed() const { return speedMS; }
+    
+    void set_speed(int ms) { speedMS = ms; }
     
     // 护盾相关
     Shield& getShield() { return shield; }
@@ -61,6 +66,7 @@ private:
     int blood;
     int energy;
     int playerId;
+    int speedMS;
     Shield shield;
 };
 

@@ -8,6 +8,7 @@ Snake::Snake(int startX, int startY, int playerId) : playerId(playerId) {
     alive = 1;
     blood = 3;
     energy = 0;
+    speedMS = baseSpeedMs;
 
     for (int i = 0; i < length; i++) {
         if (playerId == 1) {

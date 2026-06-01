@@ -1,9 +1,5 @@
 #include "../include/level1.h"
-#include "../include/game_ui.h"
-#include "../include/leaderboard.h"
-#include <cstring>
-#include <conio.h>
-#include <windows.h>
+
 
 // 辅助绘制函数，GameUI中无障碍物和护盾道具相关部分
 static void drawGameFrame(const Snake& snake, const Food& food,
@@ -61,21 +57,21 @@ static void drawGameFrame(const Snake& snake, const Food& food,
 }
 
 Level1::Level1()
-    : score(0), gameOver(0), baseSpeedMs(200), currentSpeedMs(200),
+    : score(0), gameOver(0),
       startX((WIDTH - 2) / 2), startY((HEIGHT - 2) / 2),
       snake(startX, startY),
       lastMoveTime(0), lastShieldSpawnTime(0), shieldEaten(false) {}
 
-void Level1::handleSpeedBoost() {
+void Level1::handleSpeedBoost(Snake& s) {
     if (GetAsyncKeyState(VK_LSHIFT) & 0x8000 || GetAsyncKeyState(VK_RSHIFT) & 0x8000) {
-        currentSpeedMs = baseSpeedMs / 2;
-        if (currentSpeedMs < 30) currentSpeedMs = 30;
+        s.set_speed(baseSpeedMs / 2);
+        if (s.get_speed() < 60) s.set_speed(60);
     } else {
-        currentSpeedMs = baseSpeedMs;
+        s.set_speed(baseSpeedMs);
     }
 }
 
-void Level1::trySpawnShield(unsigned long now) {
+void Level1::trySpawnShield(unsigned long now) {  // 新增函数，尝试生成护盾道具
     if (!shieldItem.isActive() && !shieldEaten) {
         if (now - lastShieldSpawnTime > 5000) {
             shieldItem.place(WIDTH, HEIGHT, snake, obstacleManager, food);
@@ -137,13 +133,6 @@ void Level1::run() {
     console.clear();
     console.setUTF8();
 
-    // 初始化游戏状态
-    snake = Snake(startX, startY);
-    score = 0;
-    gameOver = 0;
-    baseSpeedMs = 200;
-    currentSpeedMs = 200;
-
     // 放置第一个食物
     food.place_food_safe(food, snake);
 
@@ -156,7 +145,7 @@ void Level1::run() {
     shieldEaten = false;
 
     lastMoveTime = console.getTickMs();
-    unsigned long lastObstacleMove = lastMoveTime;
+    unsigned long lastObstacleMove = lastMoveTime;  // 新增变量，跟踪上次障碍物移动时间
 
     while (!gameOver) {
         // 输入处理
@@ -178,12 +167,12 @@ void Level1::run() {
             }
         }
 
-        handleSpeedBoost();
+        handleSpeedBoost(snake);  
 
         unsigned long now = console.getTickMs();
 
         // 蛇的移动
-        if (now - lastMoveTime >= static_cast<unsigned long>(currentSpeedMs)) {
+        if (now - lastMoveTime >= static_cast<unsigned long>(snake.get_speed())) {
             lastMoveTime = now;
             snake.move(snake);
             checkCollisionsAndEat(now);
@@ -200,7 +189,7 @@ void Level1::run() {
         trySpawnShield(now);
 
         // 绘制画面
-        drawGameFrame(snake, food, obstacleManager, shieldItem, score, currentSpeedMs);
+        drawGameFrame(snake, food, obstacleManager, shieldItem, score, snake.get_speed());
 
         // 更新护盾持续时间
         snake.getShield().update(now);
