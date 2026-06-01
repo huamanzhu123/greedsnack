@@ -32,7 +32,7 @@ private:
     void updateGame(unsigned long now);
     void trySpawnShield(unsigned long now);
     void checkShieldPickup(unsigned long now);
-    void handleNonLethal(unsigned long now);
+    void handleNonLethal();
     void drawGame();
     void showResults();
 };

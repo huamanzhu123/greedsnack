@@ -38,29 +38,58 @@ static void drawGameFrame2(const Snake& s1, const Snake& s2,
         for (int x = 0; x < WIDTH - 2; ++x) {
             char ch = ' ';
 
-            if (x == food.get_x() && y == food.get_y())
+            if (x == food.get_x() && y == food.get_y()) {
                 ch = '*';
-            else if (shield.isActive() && x == shield.getX() && y == shield.getY())
+                putchar(ch);
+                continue;
+            }
+            else if (shield.isActive() && x == shield.getX() && y == shield.getY()) {
                 ch = 'S';
-            else if (obstacles.checkCollision(x, y))
+                putchar(ch);
+                continue;
+            }
+            else if (obstacles.checkCollision(x, y)){
                 ch = '@';
-            else if (s1.is_alive()) {
+                putchar(ch);
+                continue;
+            }
+            else {
                 for (int k = 0; k < s1.get_length(); ++k) {
                     if (x == s1.get_x(k) && y == s1.get_y(k)) {
                         ch = (k == 0) ? 'O' : 'o';
                         break;
                     }
                 }
-            }
-            if (s2.is_alive() && ch == ' ') {
-                for (int k = 0; k < s2.get_length(); ++k) {
-                    if (x == s2.get_x(k) && y == s2.get_y(k)) {
-                        ch = (k == 0) ? 'X' : 'x';
-                        break;
+                if (ch == ' ') {
+                    for (int k = 0; k < s2.get_length(); ++k) {
+                        if (x == s2.get_x(k) && y == s2.get_y(k)) {
+                            ch = (k == 0) ? 'X' : 'x';
+                            break;
+                        }
                     }
                 }
             }
-            putchar(ch);
+            if (ch == 'O' || ch == 'o') {
+                bool flashing = s1.isDamageFlashing(console.getTickMs());
+                bool bright = flashing && ((console.getTickMs() / 100) % 2 == 0);
+                WORD normalColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                WORD flashColor = bright ? (FOREGROUND_RED | FOREGROUND_INTENSITY) : normalColor;
+                SetConsoleTextAttribute(console.getHandle(), flashColor);
+                putchar(ch);
+                SetConsoleTextAttribute(console.getHandle(), normalColor);
+            }
+            else if (ch == 'X' || ch == 'x') {
+                bool flashing = s2.isDamageFlashing(console.getTickMs());
+                bool bright = flashing && ((console.getTickMs() / 100) % 2 == 0);
+                WORD normalColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                WORD flashColor = bright ? (FOREGROUND_RED | FOREGROUND_INTENSITY) : normalColor;
+                SetConsoleTextAttribute(console.getHandle(), flashColor);
+                putchar(ch);
+                SetConsoleTextAttribute(console.getHandle(), normalColor);
+            }
+            else {
+                putchar(ch);
+            }
         }
         putchar('#');
         putchar('\n');
@@ -143,7 +172,7 @@ void Level2::checkShieldPickup(unsigned long now) {  // 吃到护盾道具
         lastShieldSpawnTime = now;
     }
     else if (shieldItem.isActive() && snake2.is_alive() &&
-             snake2.get_x(0) == shieldItem.getX() && snake2.get_y(0) == shieldItem.getY()) {
+        snake2.get_x(0) == shieldItem.getX() && snake2.get_y(0) == shieldItem.getY()) {
         snake2.getShield().activate(now);
         shieldItem.setActive(false);
         shieldEaten = true;
@@ -151,7 +180,7 @@ void Level2::checkShieldPickup(unsigned long now) {  // 吃到护盾道具
     }
 }
 
-void Level2::handleNonLethal(unsigned long now) {  // 吃到食物
+void Level2::handleNonLethal() {  // 吃到食物
     // 吃食物
     if (snake1.is_alive() && snake1.get_x(0) == food.get_x() && snake1.get_y(0) == food.get_y()) {
         snake1.grow(snake1);
@@ -200,13 +229,24 @@ void Level2::updateGame(unsigned long now) {
                 }
             }
             if (!die1 && obstacleManager.checkCollision(newX1, newY1)) {
-                if (!snake1.getShield().isActive())
-                    die1 = true;
+                if (!snake1.getShield().isActive()){
+                    snake1.set_blood(snake1.get_blood() - 1);
+                    snake1.setDamageFlash(now);
+                    snake1.move_with_collision(snake1);
+                    if (snake1.get_blood() <= 0) {
+                        die1 = true;
+                    }
+                }
             }
             if (!die1 && snake2.is_alive()) {
                 for (int i = 0; i < snake2.get_length(); ++i) {
                     if (newX1 == snake2.get_x(i) && newY1 == snake2.get_y(i)) {
-                        die1 = true;
+                        snake1.set_blood(snake1.get_blood() - 1);
+                        snake1.setDamageFlash(now);
+                        snake1.move_with_collision(snake1);
+                        if (snake1.get_blood() <= 0) {
+                            die1 = true;
+                        }
                         break;
                     }
                 }
@@ -227,13 +267,24 @@ void Level2::updateGame(unsigned long now) {
                 }
             }
             if (!die2 && obstacleManager.checkCollision(newX2, newY2)) {
-                if (!snake2.getShield().isActive())
-                    die2 = true;
+                if (!snake2.getShield().isActive()){
+                    snake2.set_blood(snake2.get_blood() - 1);
+                    snake2.setDamageFlash(now);
+                    snake2.move_with_collision(snake2);
+                    if (snake2.get_blood() <= 0) {
+                        die2 = true;
+                    }
+                }
             }
             if (!die2 && snake1.is_alive()) {
                 for (int i = 0; i < snake1.get_length(); ++i) {
                     if (newX2 == snake1.get_x(i) && newY2 == snake1.get_y(i)) {
-                        die2 = true;
+                        snake2.set_blood(snake2.get_blood() - 1);
+                        snake2.setDamageFlash(now);
+                        snake2.move_with_collision(snake2);
+                        if (snake2.get_blood() <= 0) {
+                            die2 = true;
+                        }
                         break;
                     }
                 }
@@ -259,7 +310,7 @@ void Level2::updateGame(unsigned long now) {
         }
 
         // 处理食物和护盾拾取
-        handleNonLethal(now);
+        handleNonLethal();
     }
 
     // 移动障碍物
@@ -338,7 +389,7 @@ void Level2::run() {
 
     lastMoveTime = console.getTickMs();
     lastObstacleMoveTime = lastMoveTime;
-    
+
     while (!gameOver) {
         handleInput();
         handleSpeedBoost();

@@ -20,37 +20,41 @@ static void drawGameFrame(const Snake& snake, const Food& food,
             char ch = ' ';
 
             // 食物
-            if (x == food.get_x() && y == food.get_y())
+            if (x == food.get_x() && y == food.get_y()) {
                 ch = '*';
+                putchar(ch);
+                continue;
+            }
             // 护盾道具
-            else if (shield.isActive() && x == shield.getX() && y == shield.getY())
+            else if (shield.isActive() && x == shield.getX() && y == shield.getY()) {
                 ch = 'S';
+                putchar(ch);
+                continue;
+            }
             // 障碍物
-            else if (obstacles.checkCollision(x, y))
+            else if (obstacles.checkCollision(x, y)) {
                 ch = '@';
+                putchar(ch);
+                continue;
+            }
             // 蛇
             else {
+                bool flashing = snake.isDamageFlashing(console.getTickMs());
+                bool bright = flashing && ((console.getTickMs() / 100) % 2 == 0);
+                WORD normalColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                WORD flashColor = bright ? (FOREGROUND_RED | FOREGROUND_INTENSITY) : normalColor;
                 for (int k = 0; k < snake.get_length(); ++k) {
                     if (x == snake.get_x(k) && y == snake.get_y(k)) {
                         ch = (k == 0) ? 'O' : 'o';
                         break;
                     }
                 }
-            }
-            // 先判断是否闪烁，设置颜色
-            bool isSnake = (ch == 'O' || ch == 'o');
-            bool flashing = isSnake && snake.isDamageFlashing(console.getTickMs());
-            if (flashing) {
-                bool bright = ((console.getTickMs() / 100) % 2 == 0);
-                WORD flashColor = bright ? (FOREGROUND_RED | FOREGROUND_INTENSITY)
-                                        : (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
                 SetConsoleTextAttribute(console.getHandle(), flashColor);
+                putchar(ch);
+                SetConsoleTextAttribute(console.getHandle(), normalColor);
+                continue;
             }
             putchar(ch);
-            if (flashing) {
-                SetConsoleTextAttribute(console.getHandle(), 
-                    FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);  // 恢复白色
-            }
         }
         putchar('#');
         putchar('\n');
@@ -128,7 +132,12 @@ void Level1::checkCollisionsAndEat(unsigned long now) {
     }
     // 撞自己：直接游戏结束
     if (snake.check_self_collision(snake)) {
-        gameOver = 1;
+        snake.set_blood(snake.get_blood() - 1);
+        snake.setDamageFlash(now);
+        snake.move_with_collision(snake);
+        if (snake.get_blood() <= 0) {
+            gameOver = 1;
+        }
         return;
     }
     // 撞障碍物：如果有护盾则抵消，否则扣血
