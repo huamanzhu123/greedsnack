@@ -72,7 +72,6 @@ static void drawGameFrame2(const Snake& s1, const Snake& s2,
 
 Level2::Level2()
     : score1(0), score2(0), gameOver(0),
-      baseSpeedMs(150), currentSpeedMs(150),
       snake1((WIDTH - 2) / 4, (HEIGHT - 2) / 2, 1),
       snake2(3 * (WIDTH - 2) / 4, (HEIGHT - 2) / 2, 2),
       lastMoveTime(0), lastObstacleMoveTime(0),
@@ -106,10 +105,13 @@ void Level2::handleSpeedBoost() {
     if (GetAsyncKeyState('E') & 0x8000)
         boost = true;
     if (boost) {
-        currentSpeedMs = baseSpeedMs / 2;
-        if (currentSpeedMs < 30) currentSpeedMs = 30;
+        snake1.set_speed(snake1.get_speed() / 2);
+        snake2.set_speed(snake2.get_speed() / 2);
+        if (snake1.get_speed() < 60) snake1.set_speed(60);
+        if (snake2.get_speed() < 60) snake2.set_speed(60);
     } else {
-        currentSpeedMs = baseSpeedMs;
+        snake1.set_speed(200);
+        snake2.set_speed(200);
     }
 }
 
@@ -132,7 +134,7 @@ void Level2::trySpawnShield(unsigned long now) {
     }
 }
 
-void Level2::checkShieldPickup(unsigned long now) {
+void Level2::checkShieldPickup(unsigned long now) {  // 吃到护盾道具
     if (shieldItem.isActive() && snake1.is_alive() &&
         snake1.get_x(0) == shieldItem.getX() && snake1.get_y(0) == shieldItem.getY()) {
         snake1.getShield().activate(now);
@@ -149,7 +151,7 @@ void Level2::checkShieldPickup(unsigned long now) {
     }
 }
 
-void Level2::handleNonLethal(unsigned long now) {
+void Level2::handleNonLethal(unsigned long now) {  // 吃到食物
     // 吃食物
     if (snake1.is_alive() && snake1.get_x(0) == food.get_x() && snake1.get_y(0) == food.get_y()) {
         snake1.grow(snake1);
@@ -164,7 +166,7 @@ void Level2::handleNonLethal(unsigned long now) {
 }
 
 void Level2::updateGame(unsigned long now) {
-    if (now - lastMoveTime >= static_cast<unsigned long>(currentSpeedMs)) {
+    if (now - lastMoveTime >= static_cast<unsigned long>(snake1.get_speed())) {
         lastMoveTime = now;
         if (gameOver) return;
 
@@ -277,7 +279,7 @@ void Level2::updateGame(unsigned long now) {
 
 void Level2::drawGame() {
     drawGameFrame2(snake1, snake2, food, obstacleManager, shieldItem,
-                   score1, score2, currentSpeedMs);
+                   score1, score2, snake1.get_speed());
 }
 
 void Level2::showResults() {
@@ -326,8 +328,6 @@ void Level2::run() {
     snake2 = Snake(3 * (WIDTH - 2) / 4, (HEIGHT - 2) / 2, 2);
     score1 = score2 = 0;
     gameOver = 0;
-    baseSpeedMs = 150;
-    currentSpeedMs = 150;
 
     food.place_food_safe(food, snake1);
     obstacleManager.initialize(snake1, snake2, food, 5, 3);
@@ -338,7 +338,7 @@ void Level2::run() {
 
     lastMoveTime = console.getTickMs();
     lastObstacleMoveTime = lastMoveTime;
-
+    
     while (!gameOver) {
         handleInput();
         handleSpeedBoost();

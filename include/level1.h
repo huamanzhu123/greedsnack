@@ -20,8 +20,6 @@ public:
 private:
     int score;
     int gameOver;
-    //int baseSpeedMs;
-    //int currentSpeedMs;
     int startX, startY;
     Snake snake;
     Food food;

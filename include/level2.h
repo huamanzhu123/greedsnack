@@ -15,8 +15,6 @@ public:
 private:
     int score1, score2;
     int gameOver;
-    int baseSpeedMs;
-    int currentSpeedMs;
     
     Snake snake1;
     Snake snake2;
