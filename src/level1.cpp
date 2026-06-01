@@ -242,8 +242,8 @@ void Level1::run() {
     console.setCursorPos(0, HEIGHT + 2);
     while (_kbhit()) _getch();
 
-    printf("\nGame Over! Your final score: %d\n", score);
-    printf("Enter your name (max 31 chars, or press Enter to skip): ");
+    printf("\n游戏结束!你的最终得分为: %d\n", score);
+    printf("输入你的名字(最多31个字符): ");
     char namebuf[32] = {0};
     if (fgets(namebuf, sizeof(namebuf), stdin) != nullptr) {
         size_t len = strlen(namebuf);
@@ -260,7 +260,7 @@ void Level1::run() {
         printf("输入错误，成绩未保存。\n");
     }
 
-    printf("\nPress any key to return to menu...");
+    printf("\n按任意键返回菜单...");
     while (!_kbhit()) {}
     while (_kbhit()) _getch();
 }
