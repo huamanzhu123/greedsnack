@@ -42,6 +42,8 @@ class Console {
 		void show_menu();
 		// 获取菜单选择，等待用户输入 '1' 或 '0'，并返回该字符
 		int get_menu_choice();
+
+		HANDLE getHandle() const { return hConsole; }
 };
 
 #ifdef __cplusplus

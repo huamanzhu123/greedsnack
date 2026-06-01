@@ -8,7 +8,7 @@ static void drawGameFrame(const Snake& snake, const Food& food,
                           int score, int speedMs) {
     Console console;
     console.setCursorPos(0, 0);
-    printf("Score: %d     Speed: %d ms     Controls: Arrow/WASD, Shift加速, Esc退出\n", score, speedMs);
+    printf("分数: %d     速度: %d ms   血量：%d  方向: Arrow/WASD,    Shift加速, Esc退出\n", score, speedMs, snake.get_blood());
 
     // 上边框
     for (int i = 0; i < WIDTH; ++i) putchar('#');
@@ -37,7 +37,20 @@ static void drawGameFrame(const Snake& snake, const Food& food,
                     }
                 }
             }
+            // 先判断是否闪烁，设置颜色
+            bool isSnake = (ch == 'O' || ch == 'o');
+            bool flashing = isSnake && snake.isDamageFlashing(console.getTickMs());
+            if (flashing) {
+                bool bright = ((console.getTickMs() / 100) % 2 == 0);
+                WORD flashColor = bright ? (FOREGROUND_RED | FOREGROUND_INTENSITY)
+                                        : (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                SetConsoleTextAttribute(console.getHandle(), flashColor);
+            }
             putchar(ch);
+            if (flashing) {
+                SetConsoleTextAttribute(console.getHandle(), 
+                    FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);  // 恢复白色
+            }
         }
         putchar('#');
         putchar('\n');
@@ -110,7 +123,7 @@ void Level1::checkCollisionsAndEat(unsigned long now) {
     // 碰撞检测（护盾只免疫障碍物）
     // 撞墙：直接游戏结束
     if (snake.check_wall_collision(snake)) {
-        gameOver = 1;
+            gameOver = 1;
         return;
     }
     // 撞自己：直接游戏结束
@@ -118,10 +131,15 @@ void Level1::checkCollisionsAndEat(unsigned long now) {
         gameOver = 1;
         return;
     }
-    // 撞障碍物：如果有护盾则抵消，否则游戏结束
+    // 撞障碍物：如果有护盾则抵消，否则扣血
     if (obstacleManager.checkCollision(snake.get_x(0), snake.get_y(0))) {
         if (!snake.getShield().tryDefend()) {
-            gameOver = 1;
+            snake.set_blood(snake.get_blood() - 1);
+            snake.setDamageFlash(now);
+            snake.move_with_collision(snake);
+            if (snake.get_blood() <= 0) {
+                gameOver = 1;
+            }
             return;
         }
     }

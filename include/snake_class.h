@@ -28,6 +28,7 @@ class Snake {
 public:
     Snake(int startX = 0, int startY = 0, int playerId = 1);
     void move(Snake& s);
+    void move_with_collision(Snake& s);
     void grow(Snake& s);
 
     int check_self_collision(const Snake& s);
@@ -46,28 +47,37 @@ public:
     void setAlive(int a) { alive = a; }
     
     int get_blood() const { return blood; }
+    void set_blood(int b) { blood = b; }
     int get_energy() const { return energy; }
     int get_x(int index) const { return (index >= 0 && index < length) ? x[index] : -1; }
     int get_y(int index) const { return (index >= 0 && index < length) ? y[index] : -1; }
     int get_speed() const { return speedMS; }
-    
+
     void set_speed(int ms) { speedMS = ms; }
     
     // 护盾相关
     Shield& getShield() { return shield; }
     const Shield& getShield() const { return shield; }
+
+    // 扣血反馈
+    void setDamageFlash(unsigned long now) { damageFlashTime = now; }
+    bool isDamageFlashing(unsigned long now) const { return (now - damageFlashTime) < 300; }
     
 private:
     int x[MAX_SNAKE];
     int y[MAX_SNAKE];
     int length;
-    int dir;
+    int dir;            // 0=上, 1=右, 2=下, 3=左
     int alive;
     int blood;
     int energy;
     int playerId;
     int speedMS;
     Shield shield;
+
+    int randomPerpendicularDirection(int dir);
+
+    unsigned long damageFlashTime;
 };
 
 #ifdef __cplusplus

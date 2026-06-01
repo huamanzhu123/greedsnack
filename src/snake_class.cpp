@@ -9,6 +9,7 @@ Snake::Snake(int startX, int startY, int playerId) : playerId(playerId) {
     blood = 3;
     energy = 0;
     speedMS = baseSpeedMs;
+    damageFlashTime = 0;
 
     for (int i = 0; i < length; i++) {
         if (playerId == 1) {
@@ -29,10 +30,45 @@ void Snake::move(Snake& s) {
     }
 
     switch (s.dir) {
-        case 0: s.y[0]--; break;
-        case 1: s.x[0]++; break;
-        case 2: s.y[0]++; break;
-        case 3: s.x[0]--; break;
+        case 0: s.y[0]--; break;  // 上
+        case 1: s.x[0]++; break;  // 右
+        case 2: s.y[0]++; break;  // 下
+        case 3: s.x[0]--; break;  // 左
+    }
+}
+
+// 根据输入方向，随机返回一个垂直的方向
+int Snake::randomPerpendicularDirection(int dir) {
+    if (dir == 0 || dir == 2) {          // 上(0) 或 下(2) → 垂直方向
+        int choices[2] = {3, 1};         // 候选：左(3), 右(1)
+        return choices[rand() % 2];      // 随机选一个
+    } 
+    else if (dir == 3 || dir == 1) {     // 左(3) 或 右(1) → 水平方向
+        int choices[2] = {0, 2};         // 候选：上(0), 下(2)
+        return choices[rand() % 2];
+    } 
+    else {
+        return -1;                       // 无效方向
+    }
+}
+
+void Snake::move_with_collision(Snake& s) {
+    if(!s.alive) return;
+
+    s.dir = randomPerpendicularDirection(s.dir);
+    switch (s.dir) {
+        case 0:
+            s.x[0] = s.x[1], s.y[0] = s.y[1] - 1;
+            break;
+        case 1:
+            s.x[0] = s.x[1] + 1, s.y[0] = s.y[1];
+            break;
+        case 2:
+            s.x[0] = s.x[1], s.y[0] = s.y[1] + 1;
+            break;
+        case 3:
+            s.x[0] = s.x[1] - 1, s.y[0] = s.y[1];
+            break;
     }
 }
 
