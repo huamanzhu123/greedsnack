@@ -40,17 +40,23 @@ static void drawGameFrame2(const Snake& s1, const Snake& s2,
 
             if (x == food.get_x() && y == food.get_y()) {
                 ch = '*';
+                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
                 putchar(ch);
+                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
                 continue;
             }
             else if (shield.isActive() && x == shield.getX() && y == shield.getY()) {
                 ch = 'S';
+                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
                 putchar(ch);
+                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
                 continue;
             }
             else if (obstacles.checkCollision(x, y)){
                 ch = '@';
+                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED);
                 putchar(ch);
+                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
                 continue;
             }
             else {
@@ -72,20 +78,30 @@ static void drawGameFrame2(const Snake& s1, const Snake& s2,
             if (ch == 'O' || ch == 'o') {
                 bool flashing = s1.isDamageFlashing(console.getTickMs());
                 bool bright = flashing && ((console.getTickMs() / 100) % 2 == 0);
-                WORD normalColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                WORD normalColor;
+                if (s1.getShield().isActive()) {
+                    normalColor = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+                } else {
+                    normalColor = FOREGROUND_GREEN;
+                }
                 WORD flashColor = bright ? (FOREGROUND_RED | FOREGROUND_INTENSITY) : normalColor;
                 SetConsoleTextAttribute(console.getHandle(), flashColor);
                 putchar(ch);
-                SetConsoleTextAttribute(console.getHandle(), normalColor);
+                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
             }
             else if (ch == 'X' || ch == 'x') {
                 bool flashing = s2.isDamageFlashing(console.getTickMs());
                 bool bright = flashing && ((console.getTickMs() / 100) % 2 == 0);
-                WORD normalColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                WORD normalColor;
+                if (s2.getShield().isActive()) {
+                    normalColor = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+                } else {
+                    normalColor = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+                }
                 WORD flashColor = bright ? (FOREGROUND_RED | FOREGROUND_INTENSITY) : normalColor;
                 SetConsoleTextAttribute(console.getHandle(), flashColor);
                 putchar(ch);
-                SetConsoleTextAttribute(console.getHandle(), normalColor);
+                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
             }
             else {
                 putchar(ch);
