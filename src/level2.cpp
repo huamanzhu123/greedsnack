@@ -253,6 +253,7 @@ void Level2::updateGame(unsigned long now) {
                         die1 = true;
                     }
                 }
+                snake1.move_with_collision(snake1);
             }
             if (!die1 && snake2.is_alive()) {
                 for (int i = 0; i < snake2.get_length(); ++i) {
@@ -291,6 +292,7 @@ void Level2::updateGame(unsigned long now) {
                         die2 = true;
                     }
                 }
+                snake2.move_with_collision(snake2);
             }
             if (!die2 && snake1.is_alive()) {
                 for (int i = 0; i < snake1.get_length(); ++i) {

@@ -94,6 +94,7 @@ void Level1::handleSpeedBoost(Snake& s) {
     if (GetAsyncKeyState(VK_LSHIFT) & 0x8000 || GetAsyncKeyState(VK_RSHIFT) & 0x8000) {
         s.set_speed(baseSpeedMs / 2);
         if (s.get_speed() < 60) s.set_speed(60);
+
     } else {
         s.set_speed(baseSpeedMs);
     }
@@ -162,6 +163,8 @@ void Level1::checkCollisionsAndEat(unsigned long now) {
             }
             return;
         }
+        snake.move_with_collision(snake);
+        return;
     }
 }
 
