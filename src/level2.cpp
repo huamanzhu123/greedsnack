@@ -199,12 +199,12 @@ void Level2::checkShieldPickup(unsigned long now) {  // 吃到护盾道具
 void Level2::handleNonLethal() {  // 吃到食物
     // 吃食物
     if (snake1.is_alive() && snake1.get_x(0) == food.get_x() && snake1.get_y(0) == food.get_y()) {
-        snake1.grow(snake1);
+        snake1.grow();
         score1++;
         food.place_food_safe(food, snake1);
     }
     if (snake2.is_alive() && snake2.get_x(0) == food.get_x() && snake2.get_y(0) == food.get_y()) {
-        snake2.grow(snake2);
+        snake2.grow();
         score2++;
         food.place_food_safe(food, snake2);
     }
@@ -248,19 +248,19 @@ void Level2::updateGame(unsigned long now) {
                 if (!snake1.getShield().isActive()){
                     snake1.set_blood(snake1.get_blood() - 1);
                     snake1.setDamageFlash(now);
-                    snake1.move_with_collision(snake1);
+                    snake1.move_with_collision();
                     if (snake1.get_blood() <= 0) {
                         die1 = true;
                     }
                 }
-                snake1.move_with_collision(snake1);
+                snake1.move_with_collision();
             }
             if (!die1 && snake2.is_alive()) {
                 for (int i = 0; i < snake2.get_length(); ++i) {
                     if (newX1 == snake2.get_x(i) && newY1 == snake2.get_y(i)) {
                         snake1.set_blood(snake1.get_blood() - 1);
                         snake1.setDamageFlash(now);
-                        snake1.move_with_collision(snake1);
+                        snake1.move_with_collision();
                         if (snake1.get_blood() <= 0) {
                             die1 = true;
                         }
@@ -287,19 +287,19 @@ void Level2::updateGame(unsigned long now) {
                 if (!snake2.getShield().isActive()){
                     snake2.set_blood(snake2.get_blood() - 1);
                     snake2.setDamageFlash(now);
-                    snake2.move_with_collision(snake2);
+                    snake2.move_with_collision();
                     if (snake2.get_blood() <= 0) {
                         die2 = true;
                     }
                 }
-                snake2.move_with_collision(snake2);
+                snake2.move_with_collision();
             }
             if (!die2 && snake1.is_alive()) {
                 for (int i = 0; i < snake1.get_length(); ++i) {
                     if (newX2 == snake1.get_x(i) && newY2 == snake1.get_y(i)) {
                         snake2.set_blood(snake2.get_blood() - 1);
                         snake2.setDamageFlash(now);
-                        snake2.move_with_collision(snake2);
+                        snake2.move_with_collision();
                         if (snake2.get_blood() <= 0) {
                             die2 = true;
                         }
@@ -316,8 +316,8 @@ void Level2::updateGame(unsigned long now) {
         }
 
         // 安全移动
-        if (snake1.is_alive()) snake1.move(snake1);
-        if (snake2.is_alive()) snake2.move(snake2);
+        if (snake1.is_alive()) snake1.move();
+        if (snake2.is_alive()) snake2.move();
 
         // 消耗护盾
         if (snake1.is_alive() && obstacleManager.checkCollision(snake1.get_x(0), snake1.get_y(0))) {

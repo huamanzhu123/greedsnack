@@ -27,12 +27,12 @@ const int baseSpeedMs = 200;
 class Snake {
 public:
     Snake(int startX = 0, int startY = 0, int playerId = 1);
-    void move(Snake& s);
-    void move_with_collision(Snake& s);
-    void grow(Snake& s);
+    void move();
+    void move_with_collision();
+    void grow();
 
-    int check_self_collision(const Snake& s);
-    int check_wall_collision(const Snake& s);
+    int check_self_collision();
+    int check_wall_collision();
     
     // 检查是否与另一条蛇碰撞（头碰身体或头碰头）
     int check_snake_collision(const Snake& other, bool& headToHead);
@@ -63,7 +63,7 @@ public:
     void setDamageFlash(unsigned long now) { damageFlashTime = now; }
     bool isDamageFlashing(unsigned long now) const { return (now - damageFlashTime) < 300; }
     
-private:
+protected:
     int x[MAX_SNAKE];
     int y[MAX_SNAKE];
     int length;

@@ -1,14 +1,15 @@
-#include "../include/level1.h"
-
+#include "../include/level3.h"
 
 // 辅助绘制函数，GameUI中无障碍物和护盾道具相关部分
 static void drawGameFrame(const Snake& snake, const Food& food,
                           const ObstacleManager& obstacles,
                           const ShieldItem& shield,
+                          const Snake& aiSnake,
                           int score, int speedMs) {
     Console console;
     console.setCursorPos(0, 0);
-    printf("分数: %d     速度: %d ms   血量：%d  方向: Arrow/WASD,    Shift加速, Esc退出\n", score, speedMs, snake.get_blood());
+    printf("分数: %d  血量: %d  |  AI血量: %d     速度: %d ms    Shift加速, Esc退出\n",
++           score, snake.get_blood(), aiSnake.get_blood(), speedMs);
 
     // 上边框
     for (int i = 0; i < WIDTH; ++i) putchar('#');
@@ -45,6 +46,24 @@ static void drawGameFrame(const Snake& snake, const Food& food,
             }
             // 蛇
             else {
+                // 检查玩家蛇 (O/o)
+                for (int k = 0; k < snake.get_length(); ++k) {
+                    if (x == snake.get_x(k) && y == snake.get_y(k)) {
+                        ch = (k == 0) ? 'O' : 'o';
+                        break;
+                    }
+                }
+                // 检查AI蛇 (X/x)
+                if (ch == ' ') {
+                    for (int k = 0; k < aiSnake.get_length(); ++k) {
+                        if (x == aiSnake.get_x(k) && y == aiSnake.get_y(k)) {
+                            ch = (k == 0) ? 'X' : 'x';
+                            break;
+                        }
+                    }
+                }
+            }
+            if (ch == 'O' || ch == 'o') {
                 bool flashing = snake.isDamageFlashing(console.getTickMs());
                 bool bright = flashing && ((console.getTickMs() / 100) % 2 == 0);
                 WORD normalColor;
@@ -54,18 +73,28 @@ static void drawGameFrame(const Snake& snake, const Food& food,
                     normalColor = FOREGROUND_GREEN;  // 正常：绿色
                 }
                 WORD flashColor = bright ? (FOREGROUND_RED | FOREGROUND_INTENSITY) : normalColor;
-                for (int k = 0; k < snake.get_length(); ++k) {
-                    if (x == snake.get_x(k) && y == snake.get_y(k)) {
-                        ch = (k == 0) ? 'O' : 'o';
-                        break;
-                    }
-                }
                 SetConsoleTextAttribute(console.getHandle(), flashColor);
                 putchar(ch);
                 SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                continue;
             }
-            putchar(ch);
+            // AI蛇颜色：正常品红，护盾亮蓝，受伤闪烁红色
+            else if (ch == 'X' || ch == 'x') {
+                bool flashing = aiSnake.isDamageFlashing(console.getTickMs());
+                bool bright = flashing && ((console.getTickMs() / 100) % 2 == 0);
+                WORD normalColor;
+                if (aiSnake.getShield().isActive()) {
+                    normalColor = FOREGROUND_BLUE | FOREGROUND_INTENSITY;  // 无敌：亮蓝
+                } else {
+                    normalColor = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;  // 正常：品红
+                }
+                WORD flashColor = bright ? (FOREGROUND_RED | FOREGROUND_INTENSITY) : normalColor;
+                SetConsoleTextAttribute(console.getHandle(), flashColor);
+                putchar(ch);
+                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+            }
+            else {
+                putchar(ch);
+            }
         }
         putchar('#');
         putchar('\n');
@@ -84,23 +113,22 @@ static void drawGameFrame(const Snake& snake, const Food& food,
     }
 }
 
-Level1::Level1()
+Level3::Level3()
     : score(0), gameOver(0),
-      startX((WIDTH - 2) / 2), startY((HEIGHT - 2) / 2),
-      snake(startX, startY),
+      snake((WIDTH - 2) / 4, (HEIGHT - 2) / 2),
+      aiSnake(3 * (WIDTH - 2) / 4, (HEIGHT - 2) / 2),
       lastMoveTime(0), lastShieldSpawnTime(0), shieldEaten(false) {}
 
-void Level1::handleSpeedBoost(Snake& s) {
+void Level3::handleSpeedBoost(Snake& s) {
     if (GetAsyncKeyState(VK_LSHIFT) & 0x8000 || GetAsyncKeyState(VK_RSHIFT) & 0x8000) {
         s.set_speed(baseSpeedMs / 2);
         if (s.get_speed() < 60) s.set_speed(60);
-
     } else {
         s.set_speed(baseSpeedMs);
     }
 }
 
-void Level1::trySpawnShield(unsigned long now) {  // 新增函数，尝试生成护盾道具
+void Level3::trySpawnShield(unsigned long now) {
     if (!shieldItem.isActive() && !shieldEaten) {
         if (now - lastShieldSpawnTime > 5000) {
             shieldItem.place(WIDTH, HEIGHT, snake, obstacleManager, food);
@@ -119,7 +147,7 @@ void Level1::trySpawnShield(unsigned long now) {  // 新增函数，尝试生成
     }
 }
 
-void Level1::checkCollisionsAndEat(unsigned long now) {
+void Level3::checkCollisionsAndEat(unsigned long now) {
     // 吃到护盾道具
     if (shieldItem.isActive() &&
         snake.get_x(0) == shieldItem.getX() && snake.get_y(0) == shieldItem.getY()) {
@@ -164,11 +192,107 @@ void Level1::checkCollisionsAndEat(unsigned long now) {
             return;
         }
         snake.move_with_collision();
+    }
+    // 撞AI蛇：玩家扣血
+    if (aiSnake.is_alive()) {
+        for (int i = 0; i < aiSnake.get_length(); ++i) {
+            if (snake.get_x(0) == aiSnake.get_x(i) && snake.get_y(0) == aiSnake.get_y(i)) {
+                if(!snake.getShield().tryDefend()) {
+                    snake.set_blood(snake.get_blood() - 1);
+                    snake.setDamageFlash(now);
+                    snake.move_with_collision();
+                    if (snake.get_blood() <= 0) {
+                        gameOver = 1;
+                    }
+                }
+                snake.move_with_collision();
+                break;
+            }
+        }
         return;
     }
 }
 
-void Level1::run() {
+// AI蛇碰撞检测：撞墙/撞自己/撞障碍物/撞玩家身体 → 扣血或死亡
+void Level3::checkAICollisionsAndEat(unsigned long now) {
+    if (!aiSnake.is_alive()) return;
+
+    // 撞墙：AI同撞障碍物
+    if (aiSnake.check_wall_collision()) {
+        if (!aiSnake.getShield().tryDefend()) {
+            aiSnake.set_blood(aiSnake.get_blood() - 1);
+            aiSnake.setDamageFlash(now);
+            aiSnake.move_with_collision();
+            if (aiSnake.get_blood() <= 0) {
+                aiSnake.setAlive(0);
+            }
+            return;
+        }
+        aiSnake.move_with_collision();
+        return;
+    }
+
+    // 撞自己：扣血，随机转向
+    if (aiSnake.check_self_collision()) {
+        aiSnake.setDamageFlash(now);
+        aiSnake.move_with_collision();
+        if (aiSnake.get_blood() <= 0) {
+            aiSnake.setAlive(0);
+        }
+        return;
+    }
+
+    // 撞障碍物：有护盾抵消，否则扣血
+    if (obstacleManager.checkCollision(aiSnake.get_x(0), aiSnake.get_y(0))) {
+        if (!aiSnake.getShield().tryDefend()) {
+            aiSnake.set_blood(aiSnake.get_blood() - 1);
+            aiSnake.setDamageFlash(now);
+            aiSnake.move_with_collision();
+            if (aiSnake.get_blood() <= 0) {
+                aiSnake.setAlive(0);
+            }
+            return;
+        }
+        aiSnake.move_with_collision();
+        return;
+    }
+
+    // 撞玩家身体：AI扣血
+    if (snake.is_alive()) {
+        for (int i = 0; i < snake.get_length(); ++i) {
+            if (aiSnake.get_x(0) == snake.get_x(i) && aiSnake.get_y(0) == snake.get_y(i)) {
+                if(!aiSnake.getShield().tryDefend()) {
+                    aiSnake.set_blood(aiSnake.get_blood() - 1);
+                    aiSnake.setDamageFlash(now);
+                    aiSnake.move_with_collision();
+                    if (aiSnake.get_blood() <= 0) {
+                        aiSnake.setAlive(0);
+                    }
+                }
+                aiSnake.move_with_collision();
+                break;
+            }
+        }
+        return;
+    }
+
+    // AI吃食物：不加分，但AI成长并刷新食物
+    if (aiSnake.get_x(0) == food.get_x() && aiSnake.get_y(0) == food.get_y()) {
+        aiSnake.grow();
+        food.place_food_safe(food, snake);
+    }
+
+    // AI吃护盾道具
+    if (shieldItem.isActive() &&
+        aiSnake.get_x(0) == shieldItem.getX() && aiSnake.get_y(0) == shieldItem.getY()) {
+        aiSnake.getShield().activate(now);
+        shieldItem.setActive(false);
+        shieldEaten = true;
+        lastShieldSpawnTime = now;
+    }
+}
+
+void Level3::run() {
     Console console;
     console.hideCursor();
     console.clear();
@@ -217,6 +341,11 @@ void Level1::run() {
             lastMoveTime = now;
             snake.move();
             checkCollisionsAndEat(now);
+
+            aiSnake.updateAIDirection(obstacleManager);
+            if (aiSnake.is_alive()) aiSnake.move();
+            checkAICollisionsAndEat(now);
+            
             if (gameOver) break;
         }
 
@@ -230,10 +359,11 @@ void Level1::run() {
         trySpawnShield(now);
 
         // 绘制画面
-        drawGameFrame(snake, food, obstacleManager, shieldItem, score, snake.get_speed());
+        drawGameFrame(snake, food, obstacleManager, shieldItem, aiSnake, score, snake.get_speed());
 
         // 更新护盾持续时间
         snake.getShield().update(now);
+        aiSnake.getShield().update(now);
 
         Sleep(10);
     }
@@ -242,8 +372,8 @@ void Level1::run() {
     console.setCursorPos(0, HEIGHT + 2);
     while (_kbhit()) _getch();
 
-    printf("\n游戏结束!你的最终得分为: %d\n", score);
-    printf("输入你的名字(最多31个字符): ");
+    printf("\nGame Over! Your final score: %d\n", score);
+    printf("Enter your name (max 31 chars, or press Enter to skip): ");
     char namebuf[32] = {0};
     if (fgets(namebuf, sizeof(namebuf), stdin) != nullptr) {
         size_t len = strlen(namebuf);
@@ -260,7 +390,7 @@ void Level1::run() {
         printf("输入错误，成绩未保存。\n");
     }
 
-    printf("\n按任意键返回菜单...");
+    printf("\nPress any key to return to menu...");
     while (!_kbhit()) {}
     while (_kbhit()) _getch();
 }
