@@ -267,13 +267,14 @@ void Level3::checkAICollisionsAndEat(unsigned long now) {
                     aiSnake.move_with_collision();
                     if (aiSnake.get_blood() <= 0) {
                         aiSnake.setAlive(0);
+                        return;
                     }
                 }
                 aiSnake.move_with_collision();
                 break;
             }
         }
-        return;
+
     }
 
     // AI吃食物：不加分，但AI成长并刷新食物
@@ -342,7 +343,7 @@ void Level3::run() {
             snake.move();
             checkCollisionsAndEat(now);
 
-            aiSnake.updateAIDirection(obstacleManager);
+            aiSnake.updateAIDirection(obstacleManager, food, shieldItem);
             if (aiSnake.is_alive()) aiSnake.move();
             checkAICollisionsAndEat(now);
             
