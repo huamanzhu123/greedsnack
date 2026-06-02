@@ -7,9 +7,6 @@
 #include <stdlib.h>
 #include <conio.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 	/* 如果外层没有定义这些常量，可以在各模块中定义或使用这里的默认值 */
 #ifndef WIDTH
@@ -46,8 +43,5 @@ class Console {
 		HANDLE getHandle() const { return hConsole; }
 };
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* GAME_SHARED_H */

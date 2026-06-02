@@ -1,9 +1,6 @@
 #ifndef SNAKE_CLASS_H
 #define SNAKE_CLASS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -80,8 +77,5 @@ protected:
     unsigned long damageFlashTime;
 };
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif

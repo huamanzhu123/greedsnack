@@ -1,9 +1,6 @@
 #ifndef GAME_UI_H
 #define GAME_UI_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* 新增模块：game_ui - 负责渲染与输入封装，供各关卡复用 */
 #include <stdio.h>
@@ -35,8 +32,5 @@ class GameUI {
 		Console* getConsole() { return console; }
 };
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* GAME_UI_H */

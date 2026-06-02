@@ -39,11 +39,26 @@ static void drawGameFrame2(const Snake& s1, const Snake& s2,
             char ch = ' ';
 
             if (x == food.get_x() && y == food.get_y()) {
-                ch = '*';
-                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-                putchar(ch);
-                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                continue;
+                if (food.get_type() == Food::TYPE_HIGHSCORE) {
+                    ch = '*';
+                    unsigned long now = console.getTickMs();
+                    bool bright = ((now / 200) % 2) == 0;
+                    WORD color;
+                    if (bright)
+                        color = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+                    else
+                        color = FOREGROUND_RED | FOREGROUND_BLUE;
+                    SetConsoleTextAttribute(console.getHandle(), color);
+                    putchar(ch);
+                    SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    continue;
+                } else {
+                    ch = '*';
+                    SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+                    putchar(ch);
+                    SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    continue;
+                }
             }
             else if (shield.isActive() && x == shield.getX() && y == shield.getY()) {
                 ch = 'S';
@@ -179,7 +194,7 @@ void Level2::trySpawnShield(unsigned long now) {
     }
 }
 
-void Level2::checkShieldPickup(unsigned long now) {  // 吃到护盾道具
+void Level2::checkShieldPickup(unsigned long now) {
     if (shieldItem.isActive() && snake1.is_alive() &&
         snake1.get_x(0) == shieldItem.getX() && snake1.get_y(0) == shieldItem.getY()) {
         snake1.getShield().activate(now);
@@ -196,16 +211,21 @@ void Level2::checkShieldPickup(unsigned long now) {  // 吃到护盾道具
     }
 }
 
-void Level2::handleNonLethal() {  // 吃到食物
-    // 吃食物
+void Level2::handleNonLethal() {
     if (snake1.is_alive() && snake1.get_x(0) == food.get_x() && snake1.get_y(0) == food.get_y()) {
         snake1.grow();
-        score1++;
+        if (food.get_type() == Food::TYPE_HIGHSCORE)
+            score1 += 3;
+        else
+            score1 += 1;
         food.place_food_safe(food, snake1);
     }
     if (snake2.is_alive() && snake2.get_x(0) == food.get_x() && snake2.get_y(0) == food.get_y()) {
         snake2.grow();
-        score2++;
+        if (food.get_type() == Food::TYPE_HIGHSCORE)
+            score2 += 3;
+        else
+            score2 += 1;
         food.place_food_safe(food, snake2);
     }
 }
@@ -215,7 +235,6 @@ void Level2::updateGame(unsigned long now) {
         lastMoveTime = now;
         if (gameOver) return;
 
-        // 预计算新头位置
         int newX1 = snake1.get_x(0), newY1 = snake1.get_y(0);
         int newX2 = snake2.get_x(0), newY2 = snake2.get_y(0);
         switch(snake1.get_dir()) {
@@ -231,7 +250,6 @@ void Level2::updateGame(unsigned long now) {
             case 3: newX2--; break;
         }
 
-        // 预判玩家1是否会死亡
         bool die1 = false;
         if (snake1.is_alive()) {
             if (newX1 < 0 || newX1 >= WIDTH-2 || newY1 < 0 || newY1 >= HEIGHT-2)
@@ -270,7 +288,6 @@ void Level2::updateGame(unsigned long now) {
             }
         }
 
-        // 预判玩家2
         bool die2 = false;
         if (snake2.is_alive()) {
             if (newX2 < 0 || newX2 >= WIDTH-2 || newY2 < 0 || newY2 >= HEIGHT-2)
@@ -309,17 +326,14 @@ void Level2::updateGame(unsigned long now) {
             }
         }
 
-        // 如果任何一方会死，游戏结束
         if (die1 || die2) {
             gameOver = 1;
             return;
         }
 
-        // 安全移动
         if (snake1.is_alive()) snake1.move();
         if (snake2.is_alive()) snake2.move();
 
-        // 消耗护盾
         if (snake1.is_alive() && obstacleManager.checkCollision(snake1.get_x(0), snake1.get_y(0))) {
             snake1.getShield().tryDefend();
         }
@@ -327,21 +341,17 @@ void Level2::updateGame(unsigned long now) {
             snake2.getShield().tryDefend();
         }
 
-        // 处理食物和护盾拾取
         handleNonLethal();
     }
 
-    // 移动障碍物
     if (now - lastObstacleMoveTime >= 200) {
         lastObstacleMoveTime = now;
         obstacleManager.update(now);
     }
 
-    // 护盾生成和拾取
     trySpawnShield(now);
     checkShieldPickup(now);
 
-    // 更新护盾计时
     snake1.getShield().update(now);
     snake2.getShield().update(now);
 }

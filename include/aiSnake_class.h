@@ -1,9 +1,6 @@
 #ifndef AISNAKE_CLASS_H
 #define AISNAKE_CLASS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -38,8 +35,5 @@ private:
 };
 
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif

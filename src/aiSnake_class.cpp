@@ -1,4 +1,8 @@
 #include "../include/aiSnake_class.h"
+#include "../include/level3.h"
+#include <cstdlib>
+#include "../include/obstacle.h"
+#include "../include/snake_class.h"
 
 aiSnake::aiSnake(int startX, int startY) : Snake(startX, startY, 2) {
     x[0] = startX;

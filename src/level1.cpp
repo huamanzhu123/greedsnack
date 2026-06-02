@@ -1,7 +1,6 @@
 #include "../include/level1.h"
 
-
-// 辅助绘制函数，GameUI中无障碍物和护盾道具相关部分
+// 辅助绘制函数，包含高分食物紫色闪烁效果
 static void drawGameFrame(const Snake& snake, const Food& food,
                           const ObstacleManager& obstacles,
                           const ShieldItem& shield,
@@ -19,13 +18,29 @@ static void drawGameFrame(const Snake& snake, const Food& food,
         for (int x = 0; x < WIDTH - 2; ++x) {
             char ch = ' ';
 
-            // 食物
+            // 食物处理（区分普通/高分）
             if (x == food.get_x() && y == food.get_y()) {
-                ch = '*';
-                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-                putchar(ch);
-                SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                continue;
+                if (food.get_type() == Food::TYPE_HIGHSCORE) {
+                    ch = '*';
+                    // 紫色闪烁：每200ms切换深浅
+                    unsigned long now = console.getTickMs();
+                    bool bright = ((now / 200) % 2) == 0;
+                    WORD color;
+                    if (bright)
+                        color = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; // 亮紫
+                    else
+                        color = FOREGROUND_RED | FOREGROUND_BLUE;                       // 暗紫
+                    SetConsoleTextAttribute(console.getHandle(), color);
+                    putchar(ch);
+                    SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    continue;
+                } else {
+                    ch = '*';
+                    SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+                    putchar(ch);
+                    SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    continue;
+                }
             }
             // 护盾道具
             else if (shield.isActive() && x == shield.getX() && y == shield.getY()) {
@@ -94,13 +109,12 @@ void Level1::handleSpeedBoost(Snake& s) {
     if (GetAsyncKeyState(VK_LSHIFT) & 0x8000 || GetAsyncKeyState(VK_RSHIFT) & 0x8000) {
         s.set_speed(baseSpeedMs / 2);
         if (s.get_speed() < 60) s.set_speed(60);
-
     } else {
         s.set_speed(baseSpeedMs);
     }
 }
 
-void Level1::trySpawnShield(unsigned long now) {  // 新增函数，尝试生成护盾道具
+void Level1::trySpawnShield(unsigned long now) {
     if (!shieldItem.isActive() && !shieldEaten) {
         if (now - lastShieldSpawnTime > 5000) {
             shieldItem.place(WIDTH, HEIGHT, snake, obstacleManager, food);
@@ -129,20 +143,21 @@ void Level1::checkCollisionsAndEat(unsigned long now) {
         lastShieldSpawnTime = now;
     }
 
-    // 吃到食物
+    // 吃到食物（根据类型加分）
     if (snake.get_x(0) == food.get_x() && snake.get_y(0) == food.get_y()) {
         snake.grow();
-        score++;
+        if (food.get_type() == Food::TYPE_HIGHSCORE)
+            score += 3;
+        else
+            score += 1;
         food.place_food_safe(food, snake);
     }
 
     // 碰撞检测（护盾只免疫障碍物）
-    // 撞墙：直接游戏结束
     if (snake.check_wall_collision()) {
-            gameOver = 1;
+        gameOver = 1;
         return;
     }
-    // 撞自己：直接游戏结束
     if (snake.check_self_collision()) {
         snake.set_blood(snake.get_blood() - 1);
         snake.setDamageFlash(now);
@@ -152,7 +167,6 @@ void Level1::checkCollisionsAndEat(unsigned long now) {
         }
         return;
     }
-    // 撞障碍物：如果有护盾则抵消，否则扣血
     if (obstacleManager.checkCollision(snake.get_x(0), snake.get_y(0))) {
         if (!snake.getShield().tryDefend()) {
             snake.set_blood(snake.get_blood() - 1);
@@ -174,31 +188,25 @@ void Level1::run() {
     console.clear();
     console.setUTF8();
 
-    // 放置第一个食物
     food.place_food_safe(food, snake);
-
-    // 初始化障碍物，5个固定，3个移动，
     obstacleManager.initialize(snake, snake, food, 5, 3);
-
-    // 初始化护盾
     shieldItem.place(WIDTH, HEIGHT, snake, obstacleManager, food);
     lastShieldSpawnTime = console.getTickMs();
     shieldEaten = false;
 
     lastMoveTime = console.getTickMs();
-    unsigned long lastObstacleMove = lastMoveTime;  // 新增变量，跟踪上次障碍物移动时间
+    unsigned long lastObstacleMove = lastMoveTime;
 
     while (!gameOver) {
-        // 输入处理
         if (_kbhit()) {
             int ch = _getch();
             int currentDir = snake.get_dir();
             if (ch == 0 || ch == 224) {
                 ch = _getch();
-                if (ch == 72 && currentDir != 2) snake.setDir(0);      // 上
-                else if (ch == 80 && currentDir != 0) snake.setDir(2); // 下
-                else if (ch == 75 && currentDir != 1) snake.setDir(3); // 左
-                else if (ch == 77 && currentDir != 3) snake.setDir(1); // 右
+                if (ch == 72 && currentDir != 2) snake.setDir(0);
+                else if (ch == 80 && currentDir != 0) snake.setDir(2);
+                else if (ch == 75 && currentDir != 1) snake.setDir(3);
+                else if (ch == 77 && currentDir != 3) snake.setDir(1);
             } else {
                 if ((ch == 'W' || ch == 'w') && currentDir != 2) snake.setDir(0);
                 else if ((ch == 'S' || ch == 's') && currentDir != 0) snake.setDir(2);
@@ -208,11 +216,10 @@ void Level1::run() {
             }
         }
 
-        handleSpeedBoost(snake);  
+        handleSpeedBoost(snake);
 
         unsigned long now = console.getTickMs();
 
-        // 蛇的移动
         if (now - lastMoveTime >= static_cast<unsigned long>(snake.get_speed())) {
             lastMoveTime = now;
             snake.move();
@@ -220,25 +227,20 @@ void Level1::run() {
             if (gameOver) break;
         }
 
-        // 移动障碍物更新（每200ms）
         if (now - lastObstacleMove >= 200) {
             lastObstacleMove = now;
             obstacleManager.update(now);
         }
 
-        // 生成新的护盾道具
         trySpawnShield(now);
 
-        // 绘制画面
         drawGameFrame(snake, food, obstacleManager, shieldItem, score, snake.get_speed());
 
-        // 更新护盾持续时间
         snake.getShield().update(now);
 
         Sleep(10);
     }
 
-    // 游戏结束处理
     console.setCursorPos(0, HEIGHT + 2);
     while (_kbhit()) _getch();
 
