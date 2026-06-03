@@ -25,8 +25,8 @@
 #endif
 
 const int aibaseSpeedMs = 150;
-const int foodDistance = 10;
-const int shieldDistance = 8;
+const int foodDistance = 12;
+const int shieldDistance = 10;
 
 struct AStarNode {
     int x, y;       // 坐标
