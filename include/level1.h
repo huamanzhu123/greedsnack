@@ -11,6 +11,7 @@
 #include <cstring>
 #include <conio.h>
 #include <windows.h>
+#include "bombzone.h"
 
 class Level1 {
 public:
@@ -25,9 +26,13 @@ private:
     Food food;
     ObstacleManager obstacleManager;
     ShieldItem shieldItem;
+    BombZone bombZone;
+    void trySpawnBombZone(unsigned long now);
+    void checkBombZoneDamage(unsigned long now);
     unsigned long lastMoveTime;   // 上次移动的时间
+    bool shieldEaten;
     unsigned long lastShieldSpawnTime;   // 上次生成护盾的时间（若吃掉了，延迟5秒再生成）
-    bool shieldEaten;                     // 护盾是否被吃掉，等待重生
+    unsigned long lastBombZoneSpawnTime;   // 上次生成炸弹区域的时间                   
 
     void handleSpeedBoost(Snake& s);
     void checkCollisionsAndEat(unsigned long now);

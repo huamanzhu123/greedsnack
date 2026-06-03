@@ -27,16 +27,19 @@ public:
     int get_y() const { return y; }
     int get_type() const { return type; }
     void set_type(int t) { type = t; }
+    void setSpawnTime(unsigned long t) { spawn_time = t; }
+    bool isExpired(unsigned long now) const;
 
-    // 食物类型常量
-    static const int TYPE_NORMAL = 0;    // 普通食物 +1 分
-    static const int TYPE_HIGHSCORE = 1; // 高分食物 +3 分
+    static const int TYPE_NORMAL = 0;
+    static const int TYPE_HIGHSCORE = 1;
+    static const unsigned long NORMAL_LIFETIME = 10000;  // 普通食物10秒
+    static const unsigned long HIGHSCORE_LIFETIME = 5000; // 高分食物5秒
 
 private:
-    int x;             // 食物的x坐标
-    int y;             // 食物的y坐标
-    int type;          // 食物类型
-    unsigned long refresh_time;  // 食物刷新时间（毫秒级）
+    int x;
+    int y;
+    int type;
+    unsigned long spawn_time;
 };
 
 #endif

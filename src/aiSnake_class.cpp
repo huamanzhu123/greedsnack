@@ -21,77 +21,88 @@ aiSnake::aiSnake(int startX, int startY) : Snake(startX, startY, 2) {
     }
 }
 
-int aiSnake::safeAIDirection(int cur_dir, const ObstacleManager& obstacleManager) {
-    int hx = x[0];  // AI蛇头x坐标
-    int hy = y[0];  // AI蛇头y坐标
+int aiSnake::safeAIDirection(int cur_dir, const ObstacleManager& obstacleManager, const BombZone& bombZone, const Snake& snake) {
+    int hx = x[0];
+    int hy = y[0];
 
-    // 模拟当前方向走一步
+    // 先检查当前方向是否安全
     int nx = hx, ny = hy;
     switch (cur_dir) {
-        case 0: ny--; break;  // 上
-        case 1: nx++; break;  // 右
-        case 2: ny++; break;  // 下
-        case 3: nx--; break;  // 左
+        case 0: ny--; break;
+        case 1: nx++; break;
+        case 2: ny++; break;
+        case 3: nx--; break;
     }
 
-    // 当前方向安全，直接返回
     bool hitWall = (nx < 0 || nx >= WIDTH - 2 || ny < 0 || ny >= HEIGHT - 2);
     bool hitSelf = false;
     if (!hitWall) {
-        for (int i = 1; i < length - 1; ++i) {
+        for (int i = 1; i < length; ++i) {
             if (nx == x[i] && ny == y[i]) { hitSelf = true; break; }
         }
     }
     bool hitObs = (!hitWall && obstacleManager.checkCollision(nx, ny));
-    if (!hitWall && !hitSelf && !hitObs)
-        return cur_dir;
-
-    // 当前方向不安全，尝试两个垂直方向
-    int candidates[2];
-    if (cur_dir == 0 || cur_dir == 2) {       // 上/下 → 候选左/右
-        candidates[0] = 3; candidates[1] = 1;
-    } else {                                  // 左/右 → 候选上/下
-        candidates[0] = 0; candidates[1] = 2;
+    bool inBomb = (!hitWall && bombZone.isActive() && bombZone.isInside(nx, ny));
+    bool hitsnake = false;
+    int fate = rand() % 2;
+    if (fate == 0) {
+        for (int i = 1; i < snake.get_length(); ++i) {
+                if (nx == snake.get_x(i) && ny == snake.get_y(i)) { hitsnake = true; break; }
+        }
     }
 
-    // 随机顺序尝试两个候选方向
-    int start = rand() % 2;
-    for (int i = 0; i < 2; ++i) {
-        int tryDir = candidates[(start + i) % 2];
+    if (!hitWall && !hitSelf && !hitObs && !inBomb && !hitsnake)
+        return cur_dir;
+
+    // 当前方向不安全，尝试所有四个方向
+    int allDirs[4] = {0, 1, 2, 3};
+    // 随机打乱顺序
+    for (int i = 3; i > 0; --i) {
+        int j = rand() % (i + 1);
+        int tmp = allDirs[i]; allDirs[i] = allDirs[j]; allDirs[j] = tmp;
+    }
+
+    for (int i = 0; i < 4; ++i) {
+        int tryDir = allDirs[i];
         int tx = hx, ty = hy;
         switch (tryDir) {
-            case 0: ty--; break;  // 上
-            case 1: tx++; break;  // 右
-            case 2: ty++; break;  // 下
-            case 3: tx--; break;  // 左
+            case 0: ty--; break;
+            case 1: tx++; break;
+            case 2: ty++; break;
+            case 3: tx--; break;
         }
         bool hitWall = (tx < 0 || tx >= WIDTH - 2 || ty < 0 || ty >= HEIGHT - 2);
         bool hitSelf = false;
         if (!hitWall) {
-            for (int i = 1; i < length - 1; ++i) {
+            for (int i = 1; i < length; ++i) {
                 if (tx == x[i] && ty == y[i]) { hitSelf = true; break; }
             }
         }
         bool hitObs = (!hitWall && obstacleManager.checkCollision(tx, ty));
-        if (!hitWall && !hitSelf && !hitObs)
-            return tryDir;
+        bool inBomb = (!hitWall && bombZone.isActive() && bombZone.isInside(tx, ty));
+        bool hitsnake = false;
+        int fate = rand() % 2;
+        if (fate == 0) {
+            for (int i = 1; i < snake.get_length(); ++i) {
+                    if (tx == snake.get_x(i) && ty == snake.get_y(i)) { hitsnake = true; break; }
+            }
         }
+        if (!hitWall && !hitSelf && !hitObs && !inBomb && !hitsnake)
+            return tryDir;
+    }
 
     return cur_dir;
 }
 
-void aiSnake::updateAIDirection(const ObstacleManager& obstacleManager, const Food& food, const ShieldItem& shieldItem) {
-    // 获取食物的位置
+void aiSnake::updateAIDirection(const ObstacleManager& obstacleManager, const Food& food, const ShieldItem& shieldItem, const BombZone& bombZone, const Snake& snake) {
     int foodX = food.get_x();
     int foodY = food.get_y();
 
-    // 只有距离较近时才追踪食物
     int dist = abs(x[0] - foodX) + abs(y[0] - foodY);
-    // 如果食物在foodDistance距离内，尝试用A*追踪
     if (dist <= foodDistance) {
-        int nextDir = astarPathFind(x[0], y[0], foodX, foodY, obstacleManager);
+        int nextDir = astarPathFind(x[0], y[0], foodX, foodY, obstacleManager, bombZone);
         if (nextDir != -1) {
-            int safeDir = safeAIDirection(nextDir, obstacleManager);
+            int safeDir = safeAIDirection(nextDir, obstacleManager, bombZone, snake);
             if (safeDir == nextDir) {
                 dir = nextDir;
                 return;
@@ -103,9 +114,9 @@ void aiSnake::updateAIDirection(const ObstacleManager& obstacleManager, const Fo
     int sx = shieldItem.getX(), sy = shieldItem.getY();
     int distShield = abs(x[0] - sx) + abs(y[0] - sy);
     if (distShield <= shieldDistance) {
-        int nextDir = astarPathFind(x[0], y[0], sx, sy, obstacleManager);
+        int nextDir = astarPathFind(x[0], y[0], sx, sy, obstacleManager, bombZone);
         if (nextDir != -1) {
-            int safeDir = safeAIDirection(nextDir, obstacleManager);
+            int safeDir = safeAIDirection(nextDir, obstacleManager, bombZone, snake);
             if (safeDir == nextDir) {
                 dir = safeDir;
                 return;
@@ -114,25 +125,23 @@ void aiSnake::updateAIDirection(const ObstacleManager& obstacleManager, const Fo
     }
 }
 
-    if (rand() % 10 < 4) {  // 40% 概率转向
+    if (rand() % 10 < 4) {
         int curDir = dir;
         int newDir;
 
-        // 随机选一个垂直方向
-        if (curDir == 0 || curDir == 2) {       // 上/下 → 随机选左/右
+        if (curDir == 0 || curDir == 2) {
             int choices[2] = {3, 1};
             newDir = choices[rand() % 2];
-        } else {                                  // 左/右 → 随机选上/下
+        } else {
             int choices[2] = {0, 2};
             newDir = choices[rand() % 2];
         }
 
-        newDir = safeAIDirection(newDir, obstacleManager);
+        newDir = safeAIDirection(newDir, obstacleManager, bombZone, snake);
         dir = newDir;
     } else {
-         // 不转向时也要检查当前方向是否安全（贴墙时自动修正）
         int curDir = dir;
-        int safeDir = safeAIDirection(curDir, obstacleManager);
+        int safeDir = safeAIDirection(curDir, obstacleManager, bombZone, snake);
         if (safeDir != curDir) dir = safeDir;
     }
 }
@@ -143,23 +152,22 @@ int manhattan(int x1, int y1, int x2, int y2) {
 }
 
 
-bool aiSnake::isBlocked(int x, int y, const ObstacleManager& obstacleManager) {
-    // 撞墙
+bool aiSnake::isBlocked(int x, int y, const ObstacleManager& obstacleManager, const BombZone& bombZone) {
     if (x < 0 || x >= WIDTH - 2 || y < 0 || y >= HEIGHT - 2)
         return true;
-    // 撞自己身体
     for (int i = 1; i < length; i++) {
         if (x == this->x[i] && y == this->y[i])
             return true;
     }
-    // 撞障碍物
     if (obstacleManager.checkCollision(x, y))
+        return true;
+    if (bombZone.isActive() && bombZone.isInside(x, y))
         return true;
     return false;
 }
 
 int aiSnake::astarPathFind(int startX, int startY, int goalX, int goalY,
-                           const ObstacleManager& obstacleManager) {
+                           const ObstacleManager& obstacleManager, const BombZone& bombZone) {
     // 目标就在脚下
     if (startX == goalX && startY == goalY)
         return -1;
@@ -217,7 +225,7 @@ int aiSnake::astarPathFind(int startX, int startY, int goalX, int goalY,
             // 越界、走过、不可通行，都跳过
             if (nx < 0 || nx >= WIDTH - 2 || ny < 0 || ny >= HEIGHT - 2) continue;
             if (closed[nx][ny]) continue;
-            if (isBlocked(nx, ny, obstacleManager)) continue;
+            if (isBlocked(nx, ny, obstacleManager, bombZone)) continue;
 
             int g = cur->g + 1;
             int h = manhattan(nx, ny, goalX, goalY);

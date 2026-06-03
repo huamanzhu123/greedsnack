@@ -2,7 +2,12 @@
 #include "../include/snake_class.h"
 #include <cstdlib>
 
-Food::Food() : x(0), y(0), type(TYPE_NORMAL), refresh_time(0) {}
+Food::Food() : x(0), y(0), type(TYPE_NORMAL), spawn_time(0) {}
+
+bool Food::isExpired(unsigned long now) const {
+    unsigned long lifetime = (type == TYPE_HIGHSCORE) ? HIGHSCORE_LIFETIME : NORMAL_LIFETIME;
+    return (now - spawn_time) >= lifetime;
+}
 
 int Food::place_food_safe(Food& f, const Snake& s) {
     int tries = 0;

@@ -25,6 +25,7 @@
                 "src/player.cpp",
                 "src/shield.cpp",
                 "src/obstacle.cpp",
+                "src/bombzone.cpp",
                 "src/shield_item.cpp",     
                 "src/aiSnake_class.cpp"
             ],

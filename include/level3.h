@@ -12,6 +12,7 @@
 #include <conio.h>
 #include <windows.h>
 #include "aiSnake_class.h"
+#include "bombzone.h"
 
 class Level3 {
 public:
@@ -26,13 +27,17 @@ private:
     Food food;
     ObstacleManager obstacleManager;
     ShieldItem shieldItem;
-    unsigned long lastMoveTime;   // 上次移动的时间
-    unsigned long lastShieldSpawnTime;   // 上次生成护盾的时间（若吃掉了，延迟5秒再生成）
-    bool shieldEaten;                     // 护盾是否被吃掉，等待重生
+    BombZone bombZone;
+    unsigned long lastMoveTime;
+    unsigned long lastShieldSpawnTime;
+    unsigned long lastBombZoneSpawnTime;
+    bool shieldEaten;
 
     void handleSpeedBoost(Snake& s);
     void checkCollisionsAndEat(unsigned long now);
     void checkAICollisionsAndEat(unsigned long now);
     void trySpawnShield(unsigned long now);
+    void trySpawnBombZone(unsigned long now);
+    void checkBombZoneDamage(unsigned long now);
 };
 #endif

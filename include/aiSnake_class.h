@@ -9,6 +9,7 @@
 #include "snake_class.h"
 #include "obstacle.h"
 #include "shield_item.h"
+#include "bombzone.h"
 #include <queue>
 
 #ifndef WIDTH
@@ -49,14 +50,14 @@ struct CompareNode {
 class aiSnake: public Snake {
 public:
     aiSnake(int startX, int startY);
-    void updateAIDirection(const ObstacleManager& obstacleManager, const Food& food, const ShieldItem& shieldItem);
-    int safeAIDirection(int cur_dir, const ObstacleManager& obstacleManager);
+    void updateAIDirection(const ObstacleManager& obstacleManager, const Food& food, const ShieldItem& shieldItem, const BombZone& bombZone, const Snake& snake);
+    int safeAIDirection(int cur_dir, const ObstacleManager& obstacleManager, const BombZone& bombZone, const Snake& snake);
 protected:
 
 private:
-    bool isBlocked(int x, int y, const ObstacleManager& obstacleManager);
+    bool isBlocked(int x, int y, const ObstacleManager& obstacleManager, const BombZone& bombZone);
     int astarPathFind(int startX, int startY, int goalX, int goalY,
-                           const ObstacleManager& obstacleManager);
+                           const ObstacleManager& obstacleManager, const BombZone& bombZone);
 };
 
 

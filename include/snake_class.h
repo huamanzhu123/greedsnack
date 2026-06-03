@@ -59,7 +59,8 @@ public:
     // 扣血反馈
     void setDamageFlash(unsigned long now) { damageFlashTime = now; }
     bool isDamageFlashing(unsigned long now) const { return (now - damageFlashTime) < 300; }
-    
+    //能量相关函数
+    void set_energy(int e) { energy = e; }
 protected:
     int x[MAX_SNAKE];
     int y[MAX_SNAKE];

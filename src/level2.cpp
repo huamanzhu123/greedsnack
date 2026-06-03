@@ -159,19 +159,32 @@ void Level2::handleInput() {
 }
 
 void Level2::handleSpeedBoost() {
-    bool boost = false;
-    if (GetAsyncKeyState(VK_LSHIFT) & 0x8000 || GetAsyncKeyState(VK_RSHIFT) & 0x8000)
-        boost = true;
-    if (GetAsyncKeyState('E') & 0x8000)
-        boost = true;
-    if (boost) {
-        snake1.set_speed(snake1.get_speed() / 2);
-        snake2.set_speed(snake2.get_speed() / 2);
+    static unsigned long boost1End = 0;
+    static unsigned long boost2End = 0;
+    unsigned long now = GetTickCount();
+
+    bool shiftDown = (GetAsyncKeyState(VK_LSHIFT) & 0x8000) || (GetAsyncKeyState(VK_RSHIFT) & 0x8000);
+    if (shiftDown && snake1.get_energy() == 3 && now >= boost1End) {
+        snake1.set_energy(0);
+        boost1End = now + 5000;
+    }
+    if (now < boost1End) {
+        snake1.set_speed(baseSpeedMs / 2);
         if (snake1.get_speed() < 60) snake1.set_speed(60);
+    } else {
+        snake1.set_speed(baseSpeedMs);
+    }
+
+    bool eDown = (GetAsyncKeyState('E') & 0x8000);
+    if (eDown && snake2.get_energy() == 3 && now >= boost2End) {
+        snake2.set_energy(0);
+        boost2End = now + 5000;
+    }
+    if (now < boost2End) {
+        snake2.set_speed(baseSpeedMs / 2);
         if (snake2.get_speed() < 60) snake2.set_speed(60);
     } else {
-        snake1.set_speed(200);
-        snake2.set_speed(200);
+        snake2.set_speed(baseSpeedMs);
     }
 }
 
@@ -211,14 +224,17 @@ void Level2::checkShieldPickup(unsigned long now) {
     }
 }
 
-void Level2::handleNonLethal() {
+void Level2::handleNonLethal(unsigned long now) {
     if (snake1.is_alive() && snake1.get_x(0) == food.get_x() && snake1.get_y(0) == food.get_y()) {
         snake1.grow();
         if (food.get_type() == Food::TYPE_HIGHSCORE)
             score1 += 3;
         else
             score1 += 1;
+        if (snake1.get_energy() < 3)
+            snake1.set_energy(snake1.get_energy() + 1);
         food.place_food_safe(food, snake1);
+        food.setSpawnTime(now);
     }
     if (snake2.is_alive() && snake2.get_x(0) == food.get_x() && snake2.get_y(0) == food.get_y()) {
         snake2.grow();
@@ -226,7 +242,10 @@ void Level2::handleNonLethal() {
             score2 += 3;
         else
             score2 += 1;
+        if (snake2.get_energy() < 3)
+            snake2.set_energy(snake2.get_energy() + 1);
         food.place_food_safe(food, snake2);
+        food.setSpawnTime(now);
     }
 }
 
@@ -341,7 +360,7 @@ void Level2::updateGame(unsigned long now) {
             snake2.getShield().tryDefend();
         }
 
-        handleNonLethal();
+        handleNonLethal(now);
     }
 
     if (now - lastObstacleMoveTime >= 200) {
@@ -409,6 +428,7 @@ void Level2::run() {
     gameOver = 0;
 
     food.place_food_safe(food, snake1);
+    food.setSpawnTime(console.getTickMs());
     obstacleManager.initialize(snake1, snake2, food, 5, 3);
 
     shieldItem.place(WIDTH, HEIGHT, snake1, obstacleManager, food);
@@ -423,6 +443,12 @@ void Level2::run() {
         handleSpeedBoost();
 
         unsigned long now = console.getTickMs();
+
+        if (food.isExpired(now)) {
+            food.place_food_safe(food, snake1);
+            food.setSpawnTime(now);
+        }
+
         updateGame(now);
         drawGame();
 
