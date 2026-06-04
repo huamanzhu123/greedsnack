@@ -62,7 +62,11 @@ static void drawGameFrame(const Snake& snake, const Food& food,
             // 在绘制食物/护盾/障碍物之后，蛇之前插入以下代码
             else if (bombZone.isActive() && x >= bombZone.getX() - 1 && x <= bombZone.getX() + 1 &&
                     y >= bombZone.getY() - 1 && y <= bombZone.getY() + 1) {
-                ch = 'B';
+                if(x == bombZone.getX() && y == bombZone.getY()){
+                    ch = 'Q';
+                } else {
+                    ch = ' ';
+                }
                 // 设置红色背景或高亮
                 SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_INTENSITY | BACKGROUND_RED);
                 putchar(ch);

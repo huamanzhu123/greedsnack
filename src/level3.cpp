@@ -58,7 +58,11 @@ static void drawGameFrame(const Snake& snake, const Food& food,
             }
             else if (bombZone.isActive() && x >= bombZone.getX() - 1 && x <= bombZone.getX() + 1 &&
                     y >= bombZone.getY() - 1 && y <= bombZone.getY() + 1) {
-                ch = 'B';
+                if(x == bombZone.getX() && y == bombZone.getY()){
+                    ch = 'Q';
+                } else {
+                    ch = ' ';
+                }
                 SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_INTENSITY | BACKGROUND_RED);
                 putchar(ch);
                 SetConsoleTextAttribute(console.getHandle(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
